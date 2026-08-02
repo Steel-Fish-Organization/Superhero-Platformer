@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Superhero Platformer"
+<<<<<<< Updated upstream
 run/main_scene="res://src/ui/boot.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
@@ -22,6 +23,12 @@ SaveSystem="*res://src/autoload/save_system.gd"
 AudioManager="*res://src/autoload/audio_manager.gd"
 SceneRouter="*res://src/autoload/scene_router.tscn"
 
+=======
+run/main_scene="res://levels/testbed.tscn"
+config/features=PackedStringArray("4.5", "Forward Plus")
+config/icon="res://icon.svg"
+
+>>>>>>> Stashed changes
 [display]
 
 window/size/viewport_width=426
@@ -72,12 +79,17 @@ fire={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":2,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
+<<<<<<< Updated upstream
 dash={
+=======
+slide={
+>>>>>>> Stashed changes
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":67,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":1,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
+<<<<<<< Updated upstream
 weapon_next={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
@@ -94,6 +106,11 @@ pause={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194309,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":6,"pressure":0.0,"pressed":false,"script":null)
+=======
+restart={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+>>>>>>> Stashed changes
 ]
 }
 
@@ -101,6 +118,7 @@ pause={
 
 2d_physics/layer_1="world"
 2d_physics/layer_2="player"
+<<<<<<< Updated upstream
 2d_physics/layer_3="player_hurtbox"
 2d_physics/layer_4="player_attack"
 2d_physics/layer_5="enemy"
@@ -109,6 +127,11 @@ pause={
 2d_physics/layer_8="hazard"
 2d_physics/layer_9="ladder"
 2d_physics/layer_10="trigger"
+=======
+2d_physics/layer_3="enemy"
+2d_physics/layer_4="shot"
+2d_physics/layer_5="ladder"
+>>>>>>> Stashed changes
 
 [rendering]
 

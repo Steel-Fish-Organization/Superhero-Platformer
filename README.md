@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Superhero Platformer
 
 A Mega Man-style action platformer built in **Godot 4.5**, taking its controls
@@ -9,10 +10,19 @@ The project lives in [`superhero-platformer/`](superhero-platformer/).
 ## Playing it
 
 Open `superhero-platformer/project.godot` in Godot 4.5 and press **F5**.
+=======
+# Superhero-Platformer
+
+A small Godot 4.5 platformer template for experimenting with Mega Man-style
+movement and combat. Deliberately minimal — three scripts, one level.
+
+Open `superhero-platformer/project.godot` and press **F5**.
+>>>>>>> Stashed changes
 
 | Key | Action |
 | --- | --- |
 | Arrows | move / climb |
+<<<<<<< Updated upstream
 | **X** | jump |
 | **Z** | fire (hold to charge) |
 | **C** | slide (or ↓ + jump) |
@@ -75,3 +85,54 @@ godot --path . tools/screenshot_runner.tscn -- <scene> <out.png> [frames] [input
 
 `screenshot_runner` can drive the game with a scripted input sequence, which is
 how the movement, charge shot and boss intro were verified.
+=======
+| **X** | jump (hold for a higher jump) |
+| **Z** | fire |
+| **C** | slide (or ↓ + jump) |
+
+Falling off the level or losing all health restarts the level.
+
+## What's here
+
+```
+src/player.gd     run, jump, slide, ladders, shooting, damage    ~250 lines
+src/enemy.gd      patrols, takes damage, hurts you on contact     ~70
+src/shot.gd       flies sideways, damages what it hits            ~40
+levels/testbed.tscn
+assets/           placeholder art + the 8x8 tileset
+tools/gen_art.py  regenerates the placeholder art
+```
+
+The screen is **426×240** on an **8×8 tile grid**. All the tuning values are
+constants at the top of `player.gd`, with the original Mega Man per-frame
+numbers in the comments.
+
+The testbed level runs left to right through one thing at a time: a flat run, a
+4-tile gap, jump-height pillars (2, 3 and 5 tiles — a jump clears 5), a 2-tile
+slide tunnel, one-way platforms, a ladder, and another gap. Edit it in the Godot
+editor like any normal scene.
+
+## Deliberately not here
+
+No save system, stage select, HUD, menus, bosses, pickups, camera rooms or
+enemy spawners. The camera is a plain `Camera2D` parented to the player with
+limits set in the level. There are no autoloads and no audio.
+
+`src/shot.gd` is the piece most likely to change — it's the dumbest possible
+projectile so that replacing it is easy. Nothing else depends on how it behaves.
+
+## The full framework
+
+A complete version of this game — save system, three file slots, stage select
+with nine stages, boss framework with intro sequences and weakness tables, a
+resource-driven charge weapon system, room-scrolling camera, HUD and menus —
+lives on the `reference/full-framework` branch. It works, and it's there to
+borrow from when a system is actually needed.
+
+```bash
+git show reference/full-framework --stat          # see what's in it
+git checkout reference/full-framework -- <path>   # pull one file across
+```
+
+Pull pieces over one at a time rather than merging the branch.
+>>>>>>> Stashed changes

@@ -1,0 +1,56 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="2_sheet"]
+
+[sub_resource type="RectangleShape2D" id="Rect_stand"]
+size = Vector2(12, 24)
+
+[sub_resource type="RectangleShape2D" id="Rect_slide"]
+size = Vector2(12, 14)
+
+[sub_resource type="RectangleShape2D" id="Rect_hurt"]
+size = Vector2(10, 22)
+
+[sub_resource type="RectangleShape2D" id="Rect_ladder"]
+size = Vector2(4, 24)
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, -16)
+texture = ExtResource("2_sheet")
+hframes = 8
+vframes = 6
+
+[node name="StandShape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -12)
+shape = SubResource("Rect_stand")
+
+[node name="SlideShape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -7)
+shape = SubResource("Rect_slide")
+disabled = true
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(11, -14)
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+
+[node name="Shape" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -12)
+shape = SubResource("Rect_hurt")
+
+[node name="LadderProbe" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 16
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="LadderProbe"]
+position = Vector2(0, -12)
+shape = SubResource("Rect_ladder")
