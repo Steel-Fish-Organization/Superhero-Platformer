@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/weapon.gd" id="1_w"]
+[ext_resource type="PackedScene" path="res://src/projectiles/bomb.tscn" id="2_p"]
+
+[resource]
+script = ExtResource("1_w")
+display_name = "Bomb"
+projectile = ExtResource("2_p")
+damage = 2
+speed = 210.0
+max_active = 2
+cooldown = 0.4
+launch_angle = 32.0

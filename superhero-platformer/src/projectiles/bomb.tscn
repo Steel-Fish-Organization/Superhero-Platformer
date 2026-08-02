@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/projectile.gd" id="1_p"]
+[ext_resource type="Texture2D" path="res://assets/greybox/bomb.png" id="2_t"]
+[ext_resource type="PackedScene" path="res://src/projectiles/blast.tscn" id="3_b"]
+
+[sub_resource type="CircleShape2D" id="C"]
+resource_local_to_scene = true
+radius = 4.0
+
+[node name="Bomb" type="Area2D"]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_p")
+speed = 210.0
+damage = 2
+lifetime = 3.0
+gravity_accel = 620.0
+spin_degrees_per_second = 240.0
+impact = ExtResource("3_b")
+impact_on_expire = true
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_t")
+hframes = 2
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("C")

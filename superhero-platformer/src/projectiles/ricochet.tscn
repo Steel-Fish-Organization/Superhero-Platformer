@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/projectile.gd" id="1_p"]
+[ext_resource type="Texture2D" path="res://assets/greybox/ricochet.png" id="2_t"]
+
+[sub_resource type="CircleShape2D" id="C"]
+resource_local_to_scene = true
+radius = 4.0
+
+[node name="Ricochet" type="Area2D"]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_p")
+speed = 260.0
+damage = 2
+lifetime = 4.0
+gravity_accel = 120.0
+spin_degrees_per_second = 420.0
+bounces = 6
+bounciness = 0.95
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_t")
+hframes = 2
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("C")

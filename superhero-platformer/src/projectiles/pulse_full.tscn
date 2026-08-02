@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/projectile.gd" id="1_p"]
+[ext_resource type="Texture2D" path="res://assets/greybox/shot.png" id="2_t"]
+
+[sub_resource type="CircleShape2D" id="C"]
+resource_local_to_scene = true
+radius = 7.0
+
+[node name="PulseFull" type="Area2D"]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_p")
+speed = 400.0
+damage = 6
+lifetime = 2.4
+pierce = 1
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_t")
+hframes = 3
+frame = 2
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("C")

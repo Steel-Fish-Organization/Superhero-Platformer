@@ -32,6 +32,13 @@ C = {
     "shot_lt": (255, 255, 255, 255),
     "target":  (214, 84, 84, 255),
     "target_d":(140, 44, 48, 255),
+    "enemy":   (196, 84, 176, 255),
+    "enemy_lt":(232, 148, 214, 255),
+    "enemy_dk":(124, 44, 112, 255),
+    "bomb":    (236, 148, 64, 255),
+    "bomb_lt": (255, 214, 150, 255),
+    "rico":    (120, 226, 140, 255),
+    "orange":  (250, 168, 62, 255),
 }
 
 
@@ -87,6 +94,10 @@ class Img:
 SOLID_TILES = [0, 1]          # full 8x8 collision box
 ONEWAY_TILES = [4]            # top-only collision
 NO_COLLISION = [2, 3, 5]      # ladder + background are visual only
+## Tiles flagged with the "ladder" custom data layer. src/ladders.gd reads that
+## flag and builds the climbable volumes, so painting these tiles is all it
+## takes to place a ladder.
+LADDER_TILES = [2, 3]
 
 
 def build_tiles():
@@ -147,11 +158,16 @@ def build_tileset_resource():
         elif i in ONEWAY_TILES:
             lines.append("%d:0/0/physics_layer_0/polygon_0/points = %s" % (i, plate))
             lines.append("%d:0/0/physics_layer_0/polygon_0/one_way = true" % i)
+        if i in LADDER_TILES:
+            lines.append("%d:0/0/custom_data_0 = true" % i)
     lines += [
         "",
         "[resource]",
         "tile_size = Vector2i(8, 8)",
         "physics_layer_0/collision_layer = 1",
+        # Tick this box on any tile in the TileSet editor to make it climbable.
+        'custom_data_layer_0/name = "ladder"',
+        "custom_data_layer_0/type = 1",          # 1 = bool
         'sources/0 = SubResource("TileSetAtlasSource_grey")',
         "",
     ]
@@ -214,6 +230,71 @@ def build_target():
     img.save("assets/greybox/target.png")
 
 
+# ---------------------------------------------------------------------------
+# flying enemy: 16x16, 2 frames (wings up / wings down)
+# ---------------------------------------------------------------------------
+def build_enemy():
+    img = Img(16 * 2, 16)
+    for f in range(2):
+        o = f * 16
+        wing = 2 if f else 0
+        img.rect(o + 0, 6 + wing, 4, 2, "enemy_lt")     # wings
+        img.rect(o + 12, 6 + wing, 4, 2, "enemy_lt")
+        img.rect(o + 4, 4, 8, 9, "enemy")               # body
+        img.rect(o + 4, 4, 8, 2, "enemy_lt")
+        img.rect(o + 4, 11, 8, 2, "enemy_dk")
+        img.outline(o + 4, 4, 8, 9, "line")
+        img.rect(o + 6, 7, 4, 3, "shot_lt")             # eye
+        img.rect(o + 7, 8, 2, 1, "line")
+    img.save("assets/greybox/enemy.png")
+
+
+# ---------------------------------------------------------------------------
+# extra projectiles
+# ---------------------------------------------------------------------------
+def build_bomb():
+    """8x8, 2 frames -- the fuse blinks."""
+    img = Img(8 * 2, 8)
+    for f in range(2):
+        o = f * 8
+        img.disc(o + 3.5, 4.5, 3.4, "line")
+        img.disc(o + 3.5, 4.5, 2.6, "bomb")
+        img.rect(o + 2, 3, 2, 1, "bomb_lt")
+        img.rect(o + 4, 0, 1, 2, "line")                # fuse
+        img.rect(o + 5, 0, 1, 1, "orange" if f == 0 else "shot_lt")
+    img.save("assets/greybox/bomb.png")
+
+
+def build_ricochet():
+    """8x8, 2 frames -- a spinning diamond."""
+    img = Img(8 * 2, 8)
+    for f in range(2):
+        o = f * 8
+        if f == 0:
+            for i in range(4):
+                img.rect(o + 3 - i, 3 - i + 1, 2 + i * 2, 1, "rico")
+                img.rect(o + 3 - i, 4 + i, 2 + i * 2, 1, "rico")
+        else:
+            img.rect(o + 1, 3, 6, 2, "rico")
+            img.rect(o + 3, 1, 2, 6, "rico")
+        img.rect(o + 3, 3, 2, 2, "shot_lt")
+    img.save("assets/greybox/ricochet.png")
+
+
+def build_blast():
+    """24x24, 4 frames -- an expanding ring."""
+    img = Img(24 * 4, 24)
+    for f, r in enumerate((5, 9, 12, 11)):
+        o = f * 24
+        col = "orange" if f < 2 else "bomb_lt"
+        img.disc(o + 12, 12, r, col)
+        if f >= 1:
+            img.disc(o + 12, 12, r - 3, "shot_lt")
+        if f == 3:
+            img.disc(o + 12, 12, r - 5, "clear")
+    img.save("assets/greybox/blast.png")
+
+
 def main():
     print("Generating greybox art ...")
     build_tiles()
@@ -221,6 +302,10 @@ def main():
     build_player()
     build_shot()
     build_target()
+    build_enemy()
+    build_bomb()
+    build_ricochet()
+    build_blast()
     print("Done.")
 
 

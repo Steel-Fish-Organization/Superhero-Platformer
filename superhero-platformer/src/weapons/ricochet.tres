@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/weapon.gd" id="1_w"]
+[ext_resource type="PackedScene" path="res://src/projectiles/ricochet.tscn" id="2_p"]
+
+[resource]
+script = ExtResource("1_w")
+display_name = "Ricochet"
+projectile = ExtResource("2_p")
+damage = 2
+speed = 260.0
+max_active = 3
+cooldown = 0.22
+launch_angle = 10.0

@@ -1,7 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" path="res://assets/greybox/player.png" id="2_sheet"]
+[ext_resource type="Script" path="res://src/weapon.gd" id="3_weapon"]
+[ext_resource type="Resource" path="res://src/weapons/pulse.tres" id="4_pulse"]
+[ext_resource type="Resource" path="res://src/weapons/bomb.tres" id="5_bomb"]
+[ext_resource type="Resource" path="res://src/weapons/ricochet.tres" id="6_rico"]
 
 [sub_resource type="RectangleShape2D" id="Rect_stand"]
 size = Vector2(12, 24)
@@ -12,10 +16,14 @@ size = Vector2(12, 14)
 [sub_resource type="RectangleShape2D" id="Rect_ladder"]
 size = Vector2(4, 24)
 
+[sub_resource type="RectangleShape2D" id="Rect_hurt"]
+size = Vector2(10, 22)
+
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_player")
+weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5_bomb"), ExtResource("6_rico")])
 
 [node name="Sprite" type="Sprite2D" parent="."]
 position = Vector2(0, -16)
@@ -33,6 +41,15 @@ disabled = true
 
 [node name="Muzzle" type="Marker2D" parent="."]
 position = Vector2(10, -16)
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -12)
+shape = SubResource("Rect_hurt")
 
 [node name="LadderProbe" type="Area2D" parent="."]
 collision_layer = 0

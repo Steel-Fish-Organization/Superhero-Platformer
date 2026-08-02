@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Weapon" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/weapon.gd" id="1_w"]
+[ext_resource type="PackedScene" path="res://src/projectiles/pulse_full.tscn" id="2_p"]
+
+[resource]
+script = ExtResource("1_w")
+display_name = "Pulse (full charge)"
+projectile = ExtResource("2_p")
+damage = 6
+speed = 400.0
+max_active = 1
+cooldown = 0.24
+charge_time = 1.15
