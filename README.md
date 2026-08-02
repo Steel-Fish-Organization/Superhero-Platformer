@@ -5,13 +5,17 @@ Currently a greybox playground for trying out mechanics — three scripts, one l
 
 Open `superhero-platformer/project.godot` and press **F5**.
 
-| Key | Action |
-| --- | --- |
-| Arrows | move, climb ladders |
-| **X** | jump (hold for a higher jump) |
-| **Z** | fire — hold to charge, release to fire the charged shot |
-| **C** | slide (or ↓ + jump) |
-| **R** | respawn |
+Two control layouts, both live at once:
+
+| Action | Arrow layout | WASD layout |
+| --- | --- | --- |
+| move, climb ladders | Arrows | W A S D |
+| jump (hold for height) | **X** | **K** |
+| fire (hold to charge) | **Z** | **J** |
+| slide (or ↓/S + jump) | **C** | **L** |
+| respawn | **R** | **R** |
+
+Gamepad works too: A jump, X fire, B slide.
 
 ## What's in it
 
@@ -24,9 +28,28 @@ assets/greybox/  flat placeholder art + the 8x8 tileset
 tools/           art and level generators (you never need to open these)
 ```
 
-Screen is **426×240** on an **8×8 tile grid**. Every tuning value is a constant
-at the top of `player.gd`, with the original Mega Man per-frame numbers noted in
-the comments.
+Screen is **426×240** on an **8×8 tile grid**.
+
+## Tuning
+
+Every movement value is an `@export` on the Player, grouped in the inspector.
+You can drag them while the game is running — open **Debug → Remote** in the
+editor, pick the Player, and the changes apply instantly.
+
+Current jump: rises **69px** (about 8.5 tiles) at full hold, **31px** if you
+release straight away.
+
+| Value | Now | Effect |
+| --- | --- | --- |
+| `jump_velocity` | −310 | higher number = higher jump |
+| `gravity` | 720 | lower = floatier, longer hang time |
+| `max_fall` | 360 | caps how fast long drops get |
+| `jump_cut` | 0.45 | how much of the rise survives releasing jump |
+| `run_speed` | 90 | 1.5 px/frame, matching MMX's walk |
+
+Editing the numbers in `player.gd` works too — but if you ever tweak them in the
+inspector, that saves an override into `player.tscn` which then wins over the
+script.
 
 ## The greybox course
 
@@ -34,7 +57,9 @@ Runs left to right, one mechanic at a time:
 
 1. flat run
 2. 4-tile gap
-3. jump-height pillars — 2, 3 and 5 tiles (a jump clears 5)
+3. jump-height ruler — pillars of 2, 4, 6, 8 and 10 tiles. It deliberately runs
+   past what the jump can reach, so it stays a measuring stick while you retune.
+   At the current settings you clear 8 but not 10.
 4. slide tunnel, 2-tile opening — only a slide fits
 5. one-way platforms — jump up through them
 6. ladder up to a landing

@@ -11,17 +11,17 @@ extends SceneTree
 ## Layout, left to right, nothing blocking the section before it:
 ##   0..22    flat run
 ##   23..26   4-tile gap
-##   27..46   jump heights: 2, 3 and 5 tiles (5 is the most a jump clears)
-##   47..64   slide tunnel, 2-tile opening
-##   65..82   one-way platforms
-##   83..104  ladder up to a landing
-##   105..108 gap
-##   109..135 shooting gallery
+##   27..54   jump-height ruler: 2, 4, 6, 8 and 10 tiles
+##   55..72   slide tunnel, 2-tile opening
+##   73..90   one-way platforms
+##   91..112  ladder up to a landing
+##   113..116 gap
+##   117..143 shooting gallery
 
 const T := 8
 const FLOOR := 24
 const BOTTOM := 29
-const WIDTH := 136
+const WIDTH := 144
 
 const SOLID := Vector2i(0, 0)
 const SOLID_TOP := Vector2i(1, 0)
@@ -58,38 +58,40 @@ func _initialize() -> void:
 			bg.set_cell(Vector2i(x, y), 0, BG)
 
 	_ground(0, 22)
-	_ground(27, 46)
+	_ground(27, 54)
 
-	# jump-height reference: 2, 3 and 5 tiles
-	_slab(32, 33, FLOOR - 2, FLOOR - 1)
-	_slab(37, 38, FLOOR - 3, FLOOR - 1)
-	_slab(42, 43, FLOOR - 5, FLOOR - 1)
+	# Jump-height ruler. Deliberately spans past what the current jump can reach,
+	# so it stays a useful measuring stick while you retune gravity and jump.
+	for i in 5:
+		var height := 2 + i * 2                    # 2, 4, 6, 8, 10 tiles
+		var px := 31 + i * 5
+		_slab(px, px + 1, FLOOR - height, FLOOR - 1)
 
 	# slide tunnel -- the opening is 2 tiles, so only a slide gets through
-	_ground(47, 64)
-	_slab(52, 62, 15, FLOOR - 3)
+	_ground(55, 72)
+	_slab(60, 70, 15, FLOOR - 3)
 
 	# one-way platforms: jump up through them, land on top
-	_ground(65, 82)
-	_oneway(68, 73, 20)
-	_oneway(76, 81, 16)
+	_ground(73, 90)
+	_oneway(76, 81, 20)
+	_oneway(84, 89, 16)
 
 	# ladder up to a landing with a hole to climb out of
-	_ground(83, 104)
-	_slab(88, 91, 11, 11)
-	_slab(93, 97, 11, 11)
+	_ground(91, 112)
+	_slab(96, 99, 11, 11)
+	_slab(101, 105, 11, 11)
 	for y in range(11, FLOOR):
-		tiles.set_cell(Vector2i(92, y), 0, LADDER_TOP if y == 11 else LADDER)
-	_ladder_area(92, 9, FLOOR - 1)
+		tiles.set_cell(Vector2i(100, y), 0, LADDER_TOP if y == 11 else LADDER)
+	_ladder_area(100, 9, FLOOR - 1)
 
 	# shooting gallery
-	_ground(109, WIDTH - 1)
-	_target(116, FLOOR - 1)
-	_target(122, FLOOR - 1)
-	_target(122, FLOOR - 3)
-	_target(128, FLOOR - 1)
-	_target(128, FLOOR - 3)
-	_target(128, FLOOR - 5)
+	_ground(117, WIDTH - 1)
+	_target(124, FLOOR - 1)
+	_target(130, FLOOR - 1)
+	_target(130, FLOOR - 3)
+	_target(136, FLOOR - 1)
+	_target(136, FLOOR - 3)
+	_target(136, FLOOR - 5)
 
 	_player(3)
 

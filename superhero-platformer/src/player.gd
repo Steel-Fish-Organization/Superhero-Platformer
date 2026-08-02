@@ -1,37 +1,56 @@
 extends CharacterBody2D
 ## Mega Man / Mega Man X style movement and shooting.
 ##
-## Everything worth tuning is a constant below. Speeds are pixels/second at 60
-## physics ticks; the original per-frame values from the games are in the
-## comments so you can check them against the real thing.
+## Everything worth tuning is an @export below, so you can drag the values in
+## the inspector. Speeds are pixels/second at 60 physics ticks; the original
+## per-frame values from the games are noted in the comments.
 ##
-## Controls: arrows move/climb, X jump, Z fire (hold to charge), C slide, R restart.
+## Controls (either layout):
+##   arrows / WASD   move and climb
+##   X / K           jump, hold for height
+##   Z / J           fire, hold to charge
+##   C / L           slide (or down + jump)
+##   R               respawn
 
 const SHOT := preload("res://src/shot.tscn")
 
-# --- running and jumping ----------------------------------------------------
-const RUN_SPEED := 90.0          # 1.5 px/frame  (MM ~1.36, MMX walk 1.5)
-const JUMP_VELOCITY := -292.0    # 4.87 px/frame initial rise
-const GRAVITY := 900.0           # 0.25 px/frame^2
-const MAX_FALL := 420.0          # 7 px/frame terminal velocity
-const JUMP_CUT := 0.35           # release jump early and the rise is cut short
-const COYOTE_TIME := 0.06        # can still jump this long after leaving a ledge
-const JUMP_BUFFER := 0.08        # a jump pressed this early still counts
+# These are @export rather than const so you can drag them in the inspector
+# while the game is running (Debug > "Remote" tree) and feel the change live.
+# Editing the numbers here works too, as long as you haven't overridden them on
+# the Player node -- an inspector tweak saves into player.tscn and wins.
 
-# --- slide ------------------------------------------------------------------
-const SLIDE_SPEED := 150.0       # 2.5 px/frame
-const SLIDE_TIME := 0.42         # ~26 frames, as in MM4-6
-const SLIDE_COOLDOWN := 0.06
+@export_group("Running")
+@export var run_speed := 90.0           # 1.5 px/frame  (MM ~1.36, MMX walk 1.5)
 
-# --- ladders ----------------------------------------------------------------
-const CLIMB_SPEED := 60.0
-const LADDER_SNAP := 2.0         # px/frame pull toward the ladder's centre
+@export_group("Jumping")
+## Initial upward speed. Bigger number = higher jump.
+@export var jump_velocity := -310.0     # 5.17 px/frame
+## Pulls you down. Smaller number = floatier, longer hang time.
+@export var gravity := 720.0            # 0.2 px/frame^2
+## Fastest you can ever fall.
+@export var max_fall := 360.0           # 6 px/frame
+## Releasing jump mid-rise multiplies the remaining rise by this.
+@export var jump_cut := 0.45
+## You can still jump this long after walking off a ledge.
+@export var coyote_time := 0.06
+## A jump pressed this soon before landing still counts.
+@export var jump_buffer := 0.08
 
-# --- shooting ---------------------------------------------------------------
-const FIRE_COOLDOWN := 0.12
-const MAX_SHOTS := 3             # Mega Man's 3-on-screen limit
-## Hold times for each charge tier. Index 0 is the tap shot.
-const CHARGE_TIMES := [0.0, 0.5, 1.15]     # MMX pacing
+@export_group("Slide")
+@export var slide_speed := 150.0        # 2.5 px/frame
+@export var slide_time := 0.42          # ~26 frames, as in MM4-6
+@export var slide_cooldown := 0.06
+
+@export_group("Ladders")
+@export var climb_speed := 60.0
+@export var ladder_snap := 2.0          # px/frame pull toward the ladder centre
+
+@export_group("Shooting")
+@export var fire_cooldown := 0.12
+@export var max_shots := 3              # Mega Man's 3-on-screen limit
+## Seconds of holding fire needed for each tier. Index 0 is the tap shot.
+@export var charge_times: Array[float] = [0.0, 0.5, 1.15]   # MMX pacing
+
 const CHARGE_COLORS := [
 	Color(1, 1, 1),                 # uncharged, no tint
 	Color(1.35, 1.35, 1.6),         # mid charge, brightening
@@ -100,8 +119,8 @@ func _walk(delta: float) -> void:
 	if input_x != 0.0:
 		facing = signi(int(input_x))
 
-	velocity.x = input_x * RUN_SPEED
-	velocity.y = minf(velocity.y + GRAVITY * delta, MAX_FALL)
+	velocity.x = input_x * run_speed
+	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 
 	# Down + jump slides, as in MM4-6. The C key does the same thing.
 	if _jump_buffer > 0.0 and _coyote > 0.0:
@@ -115,7 +134,7 @@ func _walk(delta: float) -> void:
 
 	# Variable jump height: let go of jump and you stop rising.
 	if velocity.y < 0.0 and not Input.is_action_pressed(&"jump"):
-		velocity.y *= JUMP_CUT
+		velocity.y *= jump_cut
 
 	if _try_grab_ladder():
 		return
@@ -124,22 +143,22 @@ func _walk(delta: float) -> void:
 
 
 func _jump() -> void:
-	velocity.y = JUMP_VELOCITY
+	velocity.y = jump_velocity
 	_jump_buffer = 0.0
 	_coyote = 0.0
 
 
 func _start_slide() -> void:
 	sliding = true
-	_slide_timer = SLIDE_TIME
+	_slide_timer = slide_time
 	_jump_buffer = 0.0
 	_set_shape(true)
 
 
 func _slide(delta: float) -> void:
 	_slide_timer -= delta
-	velocity.x = SLIDE_SPEED * facing
-	velocity.y = minf(velocity.y + GRAVITY * delta, MAX_FALL)
+	velocity.x = slide_speed * facing
+	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 	move_and_slide()
 
 	var cancelled := Input.is_action_just_pressed(&"jump") and not Input.is_action_pressed(&"move_down")
@@ -154,7 +173,7 @@ func _slide(delta: float) -> void:
 		return
 
 	sliding = false
-	_slide_cooldown = SLIDE_COOLDOWN
+	_slide_cooldown = slide_cooldown
 	_set_shape(false)
 	if cancelled and is_on_floor():
 		_jump()
@@ -165,8 +184,8 @@ func _climb(_delta: float) -> void:
 		climbing = false
 		return
 
-	velocity = Vector2(0.0, Input.get_axis(&"move_up", &"move_down") * CLIMB_SPEED)
-	global_position.x = move_toward(global_position.x, _ladder.global_position.x, LADDER_SNAP)
+	velocity = Vector2(0.0, Input.get_axis(&"move_up", &"move_down") * climb_speed)
+	global_position.x = move_toward(global_position.x, _ladder.global_position.x, ladder_snap)
 	move_and_slide()
 
 	# Jump off, or step off the top or bottom.
@@ -217,8 +236,8 @@ func _handle_firing(delta: float) -> void:
 ## Highest charge tier reached so far: 0 tap, 1 mid, 2 full.
 func charge_tier() -> int:
 	var tier := 0
-	for i in CHARGE_TIMES.size():
-		if _charge >= CHARGE_TIMES[i]:
+	for i in charge_times.size():
+		if _charge >= charge_times[i]:
 			tier = i
 	return tier
 
@@ -234,7 +253,7 @@ func _fire(tier: int) -> void:
 			alive.append(s)
 	_shots = alive
 	# Charged shots ignore the limit -- you only ever have one out at a time.
-	if tier == 0 and _shots.size() >= MAX_SHOTS:
+	if tier == 0 and _shots.size() >= max_shots:
 		return
 
 	var shot := SHOT.instantiate()
@@ -243,7 +262,7 @@ func _fire(tier: int) -> void:
 	shot.tier = tier
 	get_parent().add_child(shot)
 	_shots.append(shot)
-	_fire_cooldown = FIRE_COOLDOWN
+	_fire_cooldown = fire_cooldown
 
 
 # ---------------------------------------------------------------------------
@@ -263,9 +282,9 @@ func _tick_timers(delta: float) -> void:
 	_fire_cooldown = maxf(0.0, _fire_cooldown - delta)
 	_slide_cooldown = maxf(0.0, _slide_cooldown - delta)
 	_jump_buffer = maxf(0.0, _jump_buffer - delta)
-	_coyote = COYOTE_TIME if is_on_floor() else maxf(0.0, _coyote - delta)
+	_coyote = coyote_time if is_on_floor() else maxf(0.0, _coyote - delta)
 	if Input.is_action_just_pressed(&"jump"):
-		_jump_buffer = JUMP_BUFFER
+		_jump_buffer = jump_buffer
 
 
 ## True when there's room to stand up where we are.
