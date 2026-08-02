@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/weapon_data.gd" id="1_yrnma"]
+[ext_resource type="Script" path="res://src/weapons/weapon_charge_stage.gd" id="2_wbmri"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_pulse.tscn" id="3_26tkc"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_pulse_mid.tscn" id="4_gk1cl"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_pulse_full.tscn" id="5_bwh3j"]
+
+[sub_resource type="Resource" id="Resource_w2wbj"]
+script = ExtResource("2_wbmri")
+projectile_scene = ExtResource("3_26tkc")
+speed = 300.0
+
+[sub_resource type="Resource" id="Resource_rvjej"]
+script = ExtResource("2_wbmri")
+projectile_scene = ExtResource("4_gk1cl")
+damage = 3
+speed = 330.0
+charge_time = 0.5
+max_active = 1
+extra_cooldown = 0.06
+recoil_time = 0.1
+shoot_sfx = &"shoot_mid"
+
+[sub_resource type="Resource" id="Resource_1tk10"]
+script = ExtResource("2_wbmri")
+projectile_scene = ExtResource("5_bwh3j")
+damage = 6
+speed = 400.0
+charge_time = 1.15
+max_active = 1
+extra_cooldown = 0.12
+recoil_time = 0.18
+shoot_sfx = &"shoot_full"
+screen_shake = 1.5
+
+[resource]
+script = ExtResource("1_yrnma")
+id = &"pulse_bolt"
+display_name = "PULSE BOLT"
+short_name = "PLS"
+stages = Array[ExtResource("2_wbmri")]([SubResource("Resource_w2wbj"), SubResource("Resource_rvjej"), SubResource("Resource_1tk10")])
+max_energy = 0.0
+energy_cost = 0.0
+fire_cooldown = 0.12
+suit_primary = Color(0.188, 0.376, 0.847, 1)
+suit_secondary = Color(0.431, 0.627, 1, 1)

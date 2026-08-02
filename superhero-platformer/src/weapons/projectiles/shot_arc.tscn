@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/projectile.gd" id="1_proj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/shot_lv2.png" id="2_tex"]
+[ext_resource type="PackedScene" path="res://src/fx/impact_small.tscn" id="3_impact"]
+
+[sub_resource type="CircleShape2D" id="Circle_mid"]
+radius = 5.0
+
+[node name="ShotArc" type="Area2D"]
+collision_layer = 8
+collision_mask = 16
+script = ExtResource("1_proj")
+speed = 210.0
+spin_degrees_per_second = 540.0
+return_after = 0.55
+damage = 3
+pierce = 3
+lifetime = 3.0
+wall_behavior = 2
+impact_effect = ExtResource("3_impact")
+hit_sfx = &"hit"
+
+[node name="Sprite" type="Sprite2D" parent="."]
+modulate = Color(0.6, 1, 0.5, 1)
+texture = ExtResource("2_tex")
+hframes = 2
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("Circle_mid")

@@ -1,0 +1,83 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="2_sheet"]
+[ext_resource type="Shader" path="res://src/shaders/palette_swap.gdshader" id="3_shader"]
+[ext_resource type="Script" path="res://src/weapons/weapon_system.gd" id="4_weapons"]
+[ext_resource type="Texture2D" path="res://assets/sprites/charge_aura.png" id="5_aura"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_suit"]
+shader = ExtResource("3_shader")
+shader_parameter/key_dark = Color(0.102, 0.18, 0.478, 1)
+shader_parameter/key_mid = Color(0.188, 0.376, 0.847, 1)
+shader_parameter/key_light = Color(0.431, 0.627, 1, 1)
+shader_parameter/replace_dark = Color(0.102, 0.18, 0.478, 1)
+shader_parameter/replace_mid = Color(0.188, 0.376, 0.847, 1)
+shader_parameter/replace_light = Color(0.431, 0.627, 1, 1)
+shader_parameter/tolerance = 0.06
+shader_parameter/flash_color = Color(1, 1, 1, 1)
+shader_parameter/flash_amount = 0.0
+
+[sub_resource type="RectangleShape2D" id="Rect_stand"]
+size = Vector2(12, 24)
+
+[sub_resource type="RectangleShape2D" id="Rect_slide"]
+size = Vector2(12, 14)
+
+[sub_resource type="RectangleShape2D" id="Rect_hurt"]
+size = Vector2(10, 22)
+
+[sub_resource type="RectangleShape2D" id="Rect_ladder"]
+size = Vector2(4, 24)
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_suit")
+position = Vector2(0, -16)
+texture = ExtResource("2_sheet")
+hframes = 8
+vframes = 6
+
+[node name="StandShape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -12)
+shape = SubResource("Rect_stand")
+
+[node name="SlideShape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -7)
+shape = SubResource("Rect_slide")
+disabled = true
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 144
+
+[node name="Shape" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -12)
+shape = SubResource("Rect_hurt")
+
+[node name="LadderProbe" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 256
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="LadderProbe"]
+position = Vector2(0, -12)
+shape = SubResource("Rect_ladder")
+
+[node name="WeaponSystem" type="Node2D" parent="."]
+script = ExtResource("4_weapons")
+muzzle = NodePath("Muzzle")
+aura = NodePath("Aura")
+
+[node name="Muzzle" type="Marker2D" parent="WeaponSystem"]
+position = Vector2(11, -14)
+
+[node name="Aura" type="Sprite2D" parent="WeaponSystem"]
+visible = false
+position = Vector2(0, -14)
+texture = ExtResource("5_aura")
+hframes = 4

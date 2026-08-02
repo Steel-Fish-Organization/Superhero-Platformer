@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/items/pickup.gd" id="1_pickup"]
+[ext_resource type="Texture2D" path="res://assets/sprites/pickups.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="Rect_item"]
+size = Vector2(8, 8)
+
+[node name="PickupETank" type="Area2D"]
+collision_layer = 64
+collision_mask = 2
+script = ExtResource("1_pickup")
+kind = 3
+amount = 1
+pickup_sfx = &"one_up"
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+hframes = 7
+frame = 5
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("Rect_item")

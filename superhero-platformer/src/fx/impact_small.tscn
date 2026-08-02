@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/fx/effect_sprite.gd" id="1_fx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/explosion.png" id="2_tex"]
+
+[node name="ImpactSmall" type="Sprite2D"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_tex")
+hframes = 6
+script = ExtResource("1_fx")
+fps = 30.0
+randomize_rotation = true

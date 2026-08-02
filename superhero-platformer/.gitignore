@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Screenshots taken by tools/screenshot_runner.tscn
+.screenshots/
+
+# Exported builds
+/build/
+/export/

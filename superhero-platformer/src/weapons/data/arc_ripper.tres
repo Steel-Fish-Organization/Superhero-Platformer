@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/weapon_data.gd" id="1_kqicd"]
+[ext_resource type="Script" path="res://src/weapons/weapon_charge_stage.gd" id="2_ww1db"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_arc.tscn" id="3_uy2f2"]
+
+[sub_resource type="Resource" id="Resource_3207a"]
+script = ExtResource("2_ww1db")
+projectile_scene = ExtResource("3_uy2f2")
+damage = 3
+speed = 210.0
+energy_cost = 2.0
+max_active = 2
+shoot_sfx = &"shoot_mid"
+
+[resource]
+script = ExtResource("1_kqicd")
+id = &"arc_ripper"
+display_name = "ARC RIPPER"
+short_name = "ARC"
+awarded_by_stage = &"stage_02"
+stages = Array[ExtResource("2_ww1db")]([SubResource("Resource_3207a")])
+can_charge = false
+energy_cost = 2.0
+fire_cooldown = 0.3
+suit_primary = Color(0.16, 0.6, 0.3, 1)
+suit_secondary = Color(0.5, 0.95, 0.55, 1)
+hud_color = Color(0.6, 1, 0.5, 1)

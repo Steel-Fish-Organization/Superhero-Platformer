@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/weapon_data.gd" id="1_6txdy"]
+[ext_resource type="Script" path="res://src/weapons/weapon_charge_stage.gd" id="2_y1l6m"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_tracer.tscn" id="3_3pn6t"]
+
+[sub_resource type="Resource" id="Resource_iexgu"]
+script = ExtResource("2_y1l6m")
+projectile_scene = ExtResource("3_3pn6t")
+damage = 2
+speed = 190.0
+energy_cost = 1.0
+max_active = 4
+
+[sub_resource type="Resource" id="Resource_vmckp"]
+script = ExtResource("2_y1l6m")
+projectile_scene = ExtResource("3_3pn6t")
+shot_count = 3
+spread_degrees = 50.0
+lateral_offset = 6.0
+damage = 2
+speed = 190.0
+charge_time = 0.7
+energy_cost = 3.0
+max_active = 8
+shoot_sfx = &"shoot_mid"
+
+[resource]
+script = ExtResource("1_6txdy")
+id = &"tracer_swarm"
+display_name = "TRACER SWARM"
+short_name = "TRC"
+awarded_by_stage = &"stage_04"
+stages = Array[ExtResource("2_y1l6m")]([SubResource("Resource_iexgu"), SubResource("Resource_vmckp")])
+fire_cooldown = 0.2
+suit_primary = Color(0.45, 0.2, 0.7, 1)
+suit_secondary = Color(0.8, 0.55, 1, 1)
+hud_color = Color(0.85, 0.55, 1, 1)

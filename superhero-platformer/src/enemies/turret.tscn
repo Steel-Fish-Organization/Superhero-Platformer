@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/enemies/turret.gd" id="1_turret"]
+[ext_resource type="Texture2D" path="res://assets/sprites/enemy_turret.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="Rect_turret"]
+size = Vector2(14, 10)
+
+[node name="Turret" type="CharacterBody2D"]
+collision_layer = 16
+collision_mask = 1
+motion_mode = 1
+script = ExtResource("1_turret")
+max_health = 4
+contact_damage = 4
+use_gravity = false
+flip_sprite = true
+drop_chance = 0.45
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+texture = ExtResource("2_tex")
+hframes = 3
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -5)
+shape = SubResource("Rect_turret")

@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/projectile.gd" id="1_proj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/shot_lv3.png" id="2_tex"]
+[ext_resource type="PackedScene" path="res://src/fx/impact_small.tscn" id="3_impact"]
+
+[sub_resource type="CapsuleShape2D" id="Capsule_lance"]
+radius = 4.0
+height = 30.0
+
+[node name="ShotLance" type="Area2D"]
+collision_layer = 8
+collision_mask = 16
+script = ExtResource("1_proj")
+speed = 520.0
+damage = 2
+pierce = 8
+lifetime = 1.2
+wall_behavior = 0
+impact_effect = ExtResource("3_impact")
+hit_sfx = &"hit"
+base_scale = 0.8
+
+[node name="Sprite" type="Sprite2D" parent="."]
+modulate = Color(1, 0.85, 0.35, 1)
+scale = Vector2(1, 0.5)
+texture = ExtResource("2_tex")
+hframes = 2
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+rotation = 1.5707963
+shape = SubResource("Capsule_lance")

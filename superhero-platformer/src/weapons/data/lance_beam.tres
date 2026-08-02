@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/weapons/weapon_data.gd" id="1_ny451"]
+[ext_resource type="Script" path="res://src/weapons/weapon_charge_stage.gd" id="2_ag6hj"]
+[ext_resource type="PackedScene" path="res://src/weapons/projectiles/shot_lance.tscn" id="3_10aqh"]
+
+[sub_resource type="Resource" id="Resource_jye76"]
+script = ExtResource("2_ag6hj")
+projectile_scene = ExtResource("3_10aqh")
+damage = 2
+speed = 520.0
+energy_cost = 3.0
+max_active = 1
+extra_cooldown = 0.1
+shoot_sfx = &"shoot_full"
+screen_shake = 1.0
+
+[resource]
+script = ExtResource("1_ny451")
+id = &"lance_beam"
+display_name = "LANCE BEAM"
+short_name = "LNC"
+awarded_by_stage = &"stage_03"
+stages = Array[ExtResource("2_ag6hj")]([SubResource("Resource_jye76")])
+can_charge = false
+energy_cost = 3.0
+fire_cooldown = 0.45
+suit_primary = Color(0.72, 0.55, 0.1, 1)
+suit_secondary = Color(1, 0.9, 0.45, 1)
+hud_color = Color(1, 0.85, 0.35, 1)
