@@ -20,9 +20,14 @@ signal transition_finished(room: Node2D)
 @export var push_distance := 26.0
 ## Falling this far below the current room counts as a pit.
 @export var pit_margin := 48.0
+## Mega Man only scrolls up when you climb a ladder through the ceiling. A jump
+## that pokes above the room would otherwise scroll up, drop you straight back
+## down, and scroll down again.
+@export var upward_needs_ladder := true
 
 var current: Node2D
 var transitioning := false
+var _tween: Tween
 
 
 func _ready() -> void:
@@ -38,6 +43,11 @@ func _ready() -> void:
 
 
 func _on_target_respawned() -> void:
+	# Dying (or pressing R) mid-scroll: stop the scroll, or it would carry on
+	# dragging the player back to the doorway after they had respawned.
+	if _tween:
+		_tween.kill()
+		_tween = null
 	transitioning = false
 	_enter(_room_at(target.global_position), true)
 
@@ -51,7 +61,7 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var next := _room_at(target.global_position)
-	if next and next != current:
+	if next and next != current and not _blocked_upward(next):
 		_transition(next)
 		return
 
@@ -95,27 +105,42 @@ func _transition(next: Node2D) -> void:
 	transition_started.emit(previous, next)
 
 	var push := _push_direction(previous, next) * push_distance
-	if target.has_method(&"set") :
-		target.set(&"frozen", true)
-		target.set(&"velocity", Vector2.ZERO)
+	target.set(&"frozen", true)
+	target.set(&"velocity", Vector2.ZERO)
 
-	# Free the limits so the camera can travel across the boundary, then put the
-	# new room's limits on once it has arrived.
+	# The camera node itself sits on the player; the limits are what hold the
+	# view inside the room. Move the node to where the view actually is BEFORE
+	# freeing the limits, or the screen jumps up to half a screen towards the
+	# player on the first frame of the scroll.
+	global_position = get_screen_center_position()
 	_clear_limits()
+	force_update_scroll()
+
 	var rect: Rect2 = next.call(&"rect")
 	var end_pos := _clamp_centre(rect, target.global_position + push)
 
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(self, "global_position", end_pos.round(), transition_time) \
+	_tween = create_tween().set_parallel(true)
+	_tween.tween_property(self, "global_position", end_pos.round(), transition_time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(target, "global_position", target.global_position + push, transition_time) \
+	_tween.tween_property(target, "global_position", target.global_position + push, transition_time) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	await tween.finished
+	_tween.finished.connect(_finish_transition.bind(next))
 
-	_apply_limits(rect)
+
+func _finish_transition(room: Node2D) -> void:
+	_tween = null
+	_apply_limits(room.call(&"rect"))
 	target.set(&"frozen", false)
 	transitioning = false
-	transition_finished.emit(next)
+	transition_finished.emit(room)
+
+
+## True when `next` is above the current room and the player didn't climb there.
+func _blocked_upward(next: Node2D) -> bool:
+	if not upward_needs_ladder or current == null:
+		return false
+	var going_up: bool = next.call(&"rect").end.y <= current.call(&"rect").position.y
+	return going_up and not target.get(&"climbing")
 
 
 ## Which way we crossed, snapped to one axis.

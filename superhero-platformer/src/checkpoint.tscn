@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/checkpoint.gd" id="1_cp"]
+
+[sub_resource type="RectangleShape2D" id="Rect_cp"]
+size = Vector2(12, 48)
+
+[node name="Checkpoint" type="Area2D"]
+collision_layer = 64
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_cp")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -24)
+shape = SubResource("Rect_cp")

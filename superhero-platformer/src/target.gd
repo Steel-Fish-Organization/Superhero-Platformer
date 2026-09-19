@@ -31,13 +31,14 @@ func _process(delta: float) -> void:
 			_revive()
 
 
-func take_damage(amount: int, _from: Node = null) -> void:
+func take_damage(amount: int, _from: Node = null) -> bool:
 	if _dead_for >= 0.0:
-		return
+		return false
 	health -= amount
 	_flash = 0.14
 	if health <= 0:
 		_die()
+	return true
 
 
 func _die() -> void:

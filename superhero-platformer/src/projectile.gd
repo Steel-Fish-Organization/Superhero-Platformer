@@ -10,6 +10,10 @@ extends Area2D
 @export var speed := 300.0
 @export var damage := 1
 @export var lifetime := 2.0
+## Removed once it is this far outside the screen, as in Mega Man. Besides
+## looking right, it frees the shot's place in the on-screen limit straight away
+## rather than holding it for the rest of `lifetime`.
+@export var offscreen_margin := 16.0
 
 @export_group("Motion")
 ## Downward acceleration. 0 for a straight shot, high for a lobbed bomb.
@@ -50,6 +54,8 @@ var _age := 0.0
 var _hits_left := 0
 var _bounces_left := 0
 var _dead := false
+## Glanced off something armoured -- it can't hurt anything any more.
+var _deflected := false
 
 
 func _ready() -> void:
@@ -79,6 +85,9 @@ func _physics_process(delta: float) -> void:
 	_age += delta
 	if _age >= lifetime:
 		_die(impact_on_expire)
+		return
+	if _is_offscreen():
+		_die(false)
 		return
 
 	if gravity_accel != 0.0:
@@ -120,16 +129,35 @@ func _move(step: Vector2) -> void:
 	direction = velocity.normalized()
 
 
+func _is_offscreen() -> bool:
+	var view := get_viewport().get_canvas_transform().affine_inverse() * get_viewport_rect()
+	return not view.grow(offscreen_margin).has_point(global_position)
+
+
 func _on_body_entered(body: Node) -> void:
-	if _dead or body == shooter:
+	if _dead or _deflected or body == shooter:
 		return
 	if not body.has_method(&"take_damage"):
 		return
-	body.take_damage(damage, self)
+	if not body.take_damage(damage, self):
+		# The hit didn't land. An enemy shot flies on through a flickering hero;
+		# a player shot glances off armour, like a closed turret.
+		if not hostile:
+			_deflect()
+		return
 	if _hits_left > 0:
 		_hits_left -= 1
 		return
 	_die(true)
+
+
+## Bounces back and up at an angle, harmlessly, as in Mega Man.
+func _deflect() -> void:
+	_deflected = true
+	var back := -signf(velocity.x) if velocity.x != 0.0 else -1.0
+	velocity = Vector2(back, -1.0).normalized() * maxf(speed, 200.0)
+	direction = velocity.normalized()
+	modulate = Color(1, 1, 1, 0.6)
 
 
 func _die(spawn_impact: bool) -> void:

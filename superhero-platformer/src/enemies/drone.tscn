@@ -1,19 +1,20 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://src/enemy.gd" id="1_e"]
+[ext_resource type="Script" path="res://src/enemies/drone.gd" id="1_e"]
 [ext_resource type="Texture2D" path="res://assets/greybox/enemy.png" id="2_t"]
 [ext_resource type="PackedScene" path="res://src/projectiles/enemy_shot.tscn" id="3_s"]
 
 [sub_resource type="RectangleShape2D" id="R"]
 size = Vector2(10, 10)
 
-[node name="Enemy" type="CharacterBody2D"]
+[node name="Drone" type="CharacterBody2D"]
 collision_layer = 4
 collision_mask = 1
 motion_mode = 1
 script = ExtResource("1_e")
 max_health = 4
 contact_damage = 3
+use_gravity = false
 projectile = ExtResource("3_s")
 
 [node name="Sprite" type="Sprite2D" parent="."]

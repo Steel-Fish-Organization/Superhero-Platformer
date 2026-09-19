@@ -1,7 +1,7 @@
 # Superhero-Platformer
 
 A Godot 4.5 prototype for a Mega Man / Mega Man X style action platformer.
-A greybox playground for trying out mechanics — nine small scripts, one level.
+A greybox playground for trying out mechanics — small scripts, one level.
 
 Open `superhero-platformer/project.godot` and press **F5**.
 
@@ -10,32 +10,39 @@ Two control layouts, both live at once:
 | Action | Arrow layout | WASD layout |
 | --- | --- | --- |
 | move, climb ladders | Arrows | W A S D |
-| jump (hold for height) | **X** | **K** |
-| fire (hold to charge) | **Z** | **J** |
+| jump (hold for height) | **X** or Space | **K** or Space |
+| fire (hold to charge) | **Z** or left click | **J** or left click |
 | slide (or ↓/S + jump) | **C** | **L** |
 | next weapon | **Q** | **Q** |
 | respawn | **R** | **R** |
 
-Gamepad works too: A jump, X fire, B slide.
+Gamepad works too: stick or D-pad to move, A jump, X fire, B slide, RB next
+weapon. Any stick tilt past the deadzone counts as a full press — Mega Man has
+one walking speed.
 
 ## What's in it
 
 ```
-src/player.gd      run, jump, slide, ladders, health, firing       ~360 lines
-src/projectile.gd  every projectile: gravity, bounce, pierce, blast ~150
-src/room_camera.gd follows the player, clamped per room, transitions ~145
-src/enemy.gd       flying enemy with health that shoots back        ~125
-src/ladders.gd     builds climbable ladders out of tiles            ~110
-src/room.gd        one room on the screen grid, editor gizmo         ~85
-src/weapon.gd      the drag-and-drop weapon resource                 ~55
-src/target.gd      block to shoot at, respawns while you test        ~55
-src/blast.gd       the explosion a bomb leaves behind                ~50
+src/player.gd         run, jump, slide, ladders, health, firing     ~510 lines
+src/enemies/enemy.gd  base for every enemy: health, contact, death  ~200
+src/projectile.gd     every projectile: gravity, bounce, pierce      ~190
+src/room_camera.gd    follows the player, clamped per room, scrolls  ~175
+src/ladders.gd        builds climbable ladders out of tiles          ~115
+src/room.gd           one room on the screen grid, editor gizmo       ~80
+src/enemies/*.gd      drone, walker, hopper, turret, flyer        40-80 each
+src/target.gd         block to shoot at, respawns while you test      ~55
+src/ui/hud.gd         the health bar                                   ~50
+src/weapon.gd         the drag-and-drop weapon resource                ~50
+src/checkpoint.gd     moves your respawn point forward                 ~50
+src/blast.gd          the explosion a bomb leaves behind               ~50
 
-src/weapons/       pulse.tres, bomb.tres, ricochet.tres  <- drag these around
-src/projectiles/   the scenes those weapons fire
+src/weapons/          pulse.tres, bomb.tres, ricochet.tres  <- drag these around
+src/projectiles/      the scenes those weapons fire
+src/fx/               enemy death explosion
 levels/greybox.tscn
-assets/greybox/    flat placeholder art + the 8x8 tileset
-tools/             art and level generators (you never need to open these)
+assets/greybox/       flat placeholder art + the 8x8 tileset
+assets/sprites/       enemy and explosion art (from the reference branch)
+tools/                art and level generators (you never need to open these)
 ```
 
 Screen is **432×240**, which is exactly **54×30 tiles** on the 8×8 grid — so
@@ -76,6 +83,10 @@ scroll horizontally *or* vertically but never both. The editor warns you if you
 set both. Falling below a room with nothing under it counts as a pit and
 respawns you.
 
+As in Mega Man, you only scroll **up** into a room by climbing a ladder through
+the ceiling — a jump that pokes above the room doesn't scroll. Turn off
+`upward_needs_ladder` on the RoomCamera if a level needs jump-up transitions.
+
 ## Tuning
 
 Every movement value is an `@export` on the Player, grouped in the inspector.
@@ -99,16 +110,17 @@ script.
 
 ## The greybox course
 
-Four rooms, laid out to exercise both transition directions:
+Five rooms, laid out to exercise both transition directions:
 
 ```
               col 2         col 3
   row 0    [ C  ladder ][ D  gallery ]
-  row 1    [ A  start — 2 screens  ][ B ]
+  row 1    [ A  start — 2 screens  ][ B ][ E  enemies ]
 
   A → B  walk right      (horizontal)
   B → C  climb the ladder (vertical)
   C → D  walk right      (horizontal)
+  B → E  walk right      (horizontal)
 ```
 
 **Room A** — flat run, 4-tile gap, jump-height ruler (pillars of 2/4/6/8/10
@@ -121,6 +133,11 @@ tunnel, one-way platforms, and a ladder that ends in mid-air.
 **Room C** — the top of that ladder, coming up through a hole in the floor.
 
 **Room D** — shooting gallery, six targets that come back after 2 seconds.
+
+**Room E** — one of each enemy type: two walkers (one pacing a raised block),
+a hopper, a turret on a pedestal, and two flyers (weaving and swooping).
+
+Checkpoints (small flag posts) sit at the entrances to rooms B, C and E.
 
 ## Weapons
 
@@ -157,15 +174,33 @@ exported values — `gravity_accel` makes it lob, `bounces` makes it ricochet,
 
 ## Health and damage
 
-The player has **28 HP** (Mega Man's bar), i-frames with a flicker, and knockback.
-Enemies have their own health and flash white when hit. Both show a small bar
-when hurt — a prototype readout, not a real HUD.
+The player has **28 HP** (Mega Man's bar), shown on the **HUD** in the top-left
+corner, with i-frames, a flicker, and knockback. Touching an enemy hurts for as
+long as you overlap it, once the i-frames run out. Enemy shots fly straight
+through you while you're flickering.
 
-Running out of health respawns you at the start of the level with full health.
+Running out of health (or falling in a pit, or pressing R) respawns you with full
+health at the last **checkpoint** you passed — or the start of the level if you
+haven't reached one. Checkpoints only move you forward. Drop `src/checkpoint.tscn`
+into a level with its origin on the floor; turn off `show_flag` for an invisible
+one.
 
-The flying enemy (`src/enemy.tscn`) hovers, bobs, and shoots at you when you're
-within `sight_range`. It's all exported: `max_health`, `contact_damage`,
-`fire_interval`, `shot_speed`, `drift_speed`, `bob_height`.
+### Enemies
+
+Every enemy extends `src/enemies/enemy.gd`, which handles health, the white hit
+flash, contact damage, the little health pip and the death explosion. Enemies
+only act while they're on screen, as in Mega Man.
+
+| Enemy | Behaviour |
+| --- | --- |
+| **Drone** | hovers and bobs (or drifts), shoots at you within `sight_range` |
+| **Walker** | patrols, turns at walls and ledges; can `chase` |
+| **Hopper** | crouches (the tell), then leaps at you on a timer |
+| **Turret** | shut and armoured — shots glance off — then opens, fires a burst, closes |
+| **Flyer** | `pattern`: weave (sine), match your height, or swoop at you and return |
+
+To add a new type, extend `Enemy` and fill in `_behaviour(delta)` — set
+`velocity`, and `move_and_slide` is called for you.
 
 ## Charge tiers
 
@@ -192,9 +227,9 @@ is throwaway, but stop using it once you start editing the scene in the editor.
 
 ## Not built yet
 
-No health, HUD, menus, save system, enemies with AI, bosses, or camera rooms.
-The camera is a plain `Camera2D` parented to the player with limits set in the
-level. Deliberately kept small so mechanics are easy to change.
+No menus, pause, save system, lives, item drops, or bosses. Killed enemies stay
+dead until you restart the game. Deliberately kept small so mechanics are easy
+to change.
 
 An older, much larger version of this project — save system, stage select, nine
 stages, boss framework, resource-driven weapons — is on the

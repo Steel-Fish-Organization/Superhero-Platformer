@@ -7,8 +7,8 @@ extends CharacterBody2D
 ##
 ## Controls (either layout):
 ##   arrows / WASD   move and climb
-##   X / K           jump, hold for height
-##   Z / J           fire, hold to charge
+##   X / K / Space   jump, hold for height
+##   Z / J / LMB     fire, hold to charge
 ##   C / L           slide (or down + jump)
 ##   Q               next weapon
 ##   R               respawn
@@ -16,6 +16,8 @@ extends CharacterBody2D
 ## The camera listens for this so it snaps to the spawn room instead of
 ## scrolling to it as if you had walked there.
 signal respawned
+## The HUD listens for this.
+signal health_changed(current: int, maximum: int)
 
 
 # These are @export rather than const so you can drag them in the inspector
@@ -100,23 +102,25 @@ var _charge := 0.0
 var _charging := false
 var _ladder: Area2D = null
 var _shots: Array[Node] = []
+## The muzzle's right-facing position from the scene, mirrored by `facing`.
+var _muzzle_offset := Vector2.ZERO
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var stand_shape: CollisionShape2D = $StandShape
 @onready var slide_shape: CollisionShape2D = $SlideShape
 @onready var muzzle: Marker2D = $Muzzle
+@onready var hurtbox: Area2D = $Hurtbox
 
 
 func _ready() -> void:
 	add_to_group(&"player")
 	_spawn_point = global_position
+	_muzzle_offset = muzzle.position
 	health = max_health
 	$LadderProbe.area_entered.connect(func(a: Area2D) -> void: _ladder = a)
 	$LadderProbe.area_exited.connect(func(a: Area2D) -> void:
 		if _ladder == a:
 			_ladder = null)
-	# Touching an enemy hurts. Their shots find us on their own.
-	$Hurtbox.body_entered.connect(_on_touched_hostile)
 
 
 func _physics_process(delta: float) -> void:
@@ -130,6 +134,9 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_update_sprite()
 		return
+
+	# Touching an enemy hurts. Their shots find us on their own.
+	_check_contact()
 
 	if _hurt_timer > 0.0:
 		_hurt(delta)
@@ -148,9 +155,9 @@ func _physics_process(delta: float) -> void:
 # movement
 # ---------------------------------------------------------------------------
 func _walk(delta: float) -> void:
-	var input_x := Input.get_axis(&"move_left", &"move_right")
+	var input_x := _input_x()
 	if input_x != 0.0:
-		facing = signi(int(input_x))
+		facing = int(input_x)
 
 	velocity.x = input_x * run_speed
 	velocity.y = minf(velocity.y + gravity * delta, max_fall)
@@ -176,6 +183,14 @@ func _walk(delta: float) -> void:
 		return
 
 	move_and_slide()
+
+
+## Left/right as exactly -1, 0 or 1. A half-tilted stick reports something like
+## 0.4, which used to walk at 40% speed and, worse, round `facing` down to 0 --
+## leaving shots with no direction and slides going nowhere. Mega Man has one
+## walking speed, so any tilt past the deadzone counts as a full press.
+func _input_x() -> float:
+	return signf(Input.get_axis(&"move_left", &"move_right"))
 
 
 func _jump() -> void:
@@ -227,9 +242,7 @@ func _climb(delta: float) -> void:
 	# Jumping off a ladder is a real jump, and you keep your steering.
 	if Input.is_action_just_pressed(&"jump"):
 		climbing = false
-		velocity = Vector2(
-			Input.get_axis(&"move_left", &"move_right") * run_speed,
-			jump_velocity * ladder_jump_scale)
+		velocity = Vector2(_input_x() * run_speed, jump_velocity * ladder_jump_scale)
 		_jump_cut_used = false
 		# Consume the buffered press, or _walk would fire a second, full-strength
 		# jump on the very next frame and override ladder_jump_scale.
@@ -325,12 +338,17 @@ func _fire(weapon: Weapon) -> void:
 		return
 
 	# Drop shots that already hit something, then apply the on-screen limit.
+	# Each charge tier has its own limit, so the buster shot that pressing fire
+	# always lets off doesn't use up the charged shot's single slot.
 	var alive: Array[Node] = []
+	var same_tier := 0
 	for s in _shots:
 		if is_instance_valid(s):
 			alive.append(s)
+			if s.get_meta(&"weapon", null) == weapon:
+				same_tier += 1
 	_shots = alive
-	if _shots.size() >= weapon.max_active:
+	if same_tier >= weapon.max_active:
 		return
 
 	# launch_angle tilts the shot upward whichever way you're facing.
@@ -343,6 +361,7 @@ func _fire(weapon: Weapon) -> void:
 		var shot := weapon.projectile.instantiate()
 		shot.damage = weapon.damage
 		shot.speed = weapon.speed
+		shot.set_meta(&"weapon", weapon)
 		get_parent().add_child(shot)
 		shot.launch(muzzle.global_position, base.rotated(offset * spread), self)
 		_shots.append(shot)
@@ -351,34 +370,38 @@ func _fire(weapon: Weapon) -> void:
 
 
 # ---------------------------------------------------------------------------
-# housekeeping
-# ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
 # damage
 # ---------------------------------------------------------------------------
-## Called by enemy shots, blasts, and the hurtbox on contact.
-func take_damage(amount: int, from: Node = null) -> void:
-	if _invuln > 0.0 or _hurt_timer > 0.0:
-		return
+## Called by enemy shots, blasts, and _check_contact. Returns false when the hit
+## was ignored (i-frames, mid-transition), so enemy shots fly on through you
+## instead of vanishing, as in Mega Man.
+func take_damage(amount: int, from: Node = null) -> bool:
+	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen:
+		return false
 
-	health -= amount
+	health = maxi(health - amount, 0)
+	health_changed.emit(health, max_health)
 	if health <= 0:
 		respawn()
-		return
+		return true
 
 	_hurt_timer = hurt_time
 	_invuln = invuln_time
 	climbing = false
-	if sliding:
+	# Standing up inside a 2-tile tunnel would wedge the hero into the ceiling,
+	# so a hit mid-slide only stands you up where there's room. Otherwise the
+	# slide simply carries on once the stun wears off.
+	if sliding and _has_headroom():
 		sliding = false
 		_set_shape(false)
 
 	var away := -facing
 	if from is Node2D:
-		away = signi(int(signf(global_position.x - (from as Node2D).global_position.x)))
+		away = int(signf(global_position.x - (from as Node2D).global_position.x))
 		if away == 0:
 			away = -facing
 	velocity = Vector2(away * knockback, -60.0)
+	return true
 
 
 ## Knocked back and not steering, until the stun runs out.
@@ -389,18 +412,33 @@ func _hurt(delta: float) -> void:
 	move_and_slide()
 
 
-func _on_touched_hostile(body: Node) -> void:
-	if body.has_method(&"get_contact_damage"):
-		take_damage(body.get_contact_damage(), body as Node2D)
+## Checked every frame rather than on body_entered: that signal only fires on
+## the first touch, so an enemy you were still standing inside when the i-frames
+## ran out could never hurt you again.
+func _check_contact() -> void:
+	if _invuln > 0.0 or _hurt_timer > 0.0:
+		return
+	for body in hurtbox.get_overlapping_bodies():
+		if not body.has_method(&"get_contact_damage"):
+			continue
+		var amount: int = body.get_contact_damage()
+		if amount > 0 and take_damage(amount, body as Node2D):
+			return
 
 
 # ---------------------------------------------------------------------------
 # housekeeping
 # ---------------------------------------------------------------------------
+## Checkpoints call this. Death, pits and R all bring you back here from now on.
+func set_checkpoint(point: Vector2) -> void:
+	_spawn_point = point
+
+
 func respawn() -> void:
 	global_position = _spawn_point
 	velocity = Vector2.ZERO
 	health = max_health
+	health_changed.emit(health, max_health)
 	sliding = false
 	climbing = false
 	frozen = false
@@ -456,8 +494,9 @@ func _set_shape(is_sliding: bool) -> void:
 func _update_sprite() -> void:
 	sprite.frame = 1 if sliding else 0
 	sprite.flip_h = facing < 0
-	muzzle.position.x = absf(muzzle.position.x) * facing
-	muzzle.position.y = -8.0 if sliding else -16.0
+	# Always rebuilt from the scene's offset. Mirroring the muzzle's own current
+	# x would lose it for good the first time it ever landed on 0.
+	muzzle.position = Vector2(_muzzle_offset.x * facing, -8.0 if sliding else _muzzle_offset.y)
 
 	# Charging flashes the hero brighter as each tier is reached.
 	var tint := Color.WHITE
@@ -470,15 +509,3 @@ func _update_sprite() -> void:
 			var top := FULL_CHARGE_TINT if tier.charged == null else MID_CHARGE_TINT
 			tint = top if flash else Color.WHITE
 	sprite.modulate = tint
-	queue_redraw()
-
-
-## Health pip above the hero. Prototype readout -- swap it for a real HUD later.
-func _draw() -> void:
-	if health >= max_health:
-		return
-	var w := 20.0
-	var frac := clampf(float(health) / float(max_health), 0.0, 1.0)
-	var origin := Vector2(-w * 0.5, -38.0)
-	draw_rect(Rect2(origin, Vector2(w, 3)), Color(0.1, 0.1, 0.15), true)
-	draw_rect(Rect2(origin, Vector2(w * frac, 3)), Color(0.4, 0.95, 1.0), true)
