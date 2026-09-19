@@ -12,13 +12,47 @@ Two control layouts, both live at once:
 | move, climb ladders | Arrows | W A S D |
 | jump (hold for height) | **X** or Space | **K** or Space |
 | fire (hold to charge) | **Z** or left click | **J** or left click |
-| slide (or ↓/S + jump) | **C** | **L** |
+| crouch | hold **↓** | hold **S** |
+| slide (or crouch + jump) | **C** | **L** |
+| aim | mouse | mouse |
 | next weapon | **Q** | **Q** |
 | respawn | **R** | **R** |
 
-Gamepad works too: stick or D-pad to move, A jump, X fire, B slide, RB next
-weapon. Any stick tilt past the deadzone counts as a full press — Mega Man has
-one walking speed.
+Gamepad, twin-stick style:
+
+| Action | Button |
+| --- | --- |
+| move / crouch | left stick or D-pad |
+| aim | right stick |
+| jump | A or **LT** |
+| fire | X or **RT** |
+| slide | B or **LB** |
+| next weapon | RB |
+
+The triggers and LB are there so your right thumb can stay on the aim stick.
+Any left-stick tilt past the deadzone counts as a full press — Mega Man has one
+walking speed.
+
+### Aiming
+
+Shots go straight ahead, Mega Man style, until you pick up an aiming device:
+
+- **Mouse / touchpad** — move it and a reticle replaces the cursor; shots fly
+  at it. Touching the controller hands aiming back to the pad.
+- **Right stick** — push it and the reticle appears that way; let go and you're
+  back to shooting straight ahead.
+
+While aiming, the hero turns to face the reticle, so you can back away while
+shooting forward. Slides still go the way you're *moving*. Turn either device
+off with `mouse_aim` / `stick_aim` on the Player.
+
+### Crouch and slide
+
+On the ground, holding down always crouches, straight away: low hitbox, no
+walking, but you can turn and shoot. Jump from a crouch **always** slides,
+never jumps, and a slide ending with down still held drops straight back into
+a crouch, so slides chain cleanly. A slide pressed up to `slide_buffer` (0.22s)
+early — near the end of the previous one — still happens.
 
 ## What's in it
 

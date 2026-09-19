@@ -10,8 +10,14 @@ extends CharacterBody2D
 ##   X / K / Space   jump, hold for height
 ##   Z / J / LMB     fire, hold to charge
 ##   C / L           slide (or down + jump)
+##   hold down       crouch (on the ground)
+##   mouse           aim, once it moves
 ##   Q               next weapon
 ##   R               respawn
+##
+## Gamepad: left stick / D-pad move, right stick aims. Jump A or LT, fire X or
+## RT, slide B or LB -- the shoulder buttons are there so you can keep your
+## right thumb on the aim stick.
 
 ## The camera listens for this so it snaps to the spawn room instead of
 ## scrolling to it as if you had walked there.
@@ -46,6 +52,11 @@ signal health_changed(current: int, maximum: int)
 @export var slide_speed := 150.0        # 2.5 px/frame
 @export var slide_time := 0.42          # ~26 frames, as in MM4-6
 @export var slide_cooldown := 0.06
+## A slide pressed this soon before one can start (the tail of the previous
+## slide, or its cooldown) still happens. Longer than the jump buffer so that
+## chaining slides never drops a press: it covers the last ~8 frames of a slide
+## plus slide_cooldown.
+@export var slide_buffer := 0.22
 
 @export_group("Ladders")
 @export var climb_speed := 60.0
@@ -54,6 +65,14 @@ signal health_changed(current: int, maximum: int)
 @export var ladder_dismount_hop := -110.0
 ## Jumping off a ladder uses this share of a normal jump.
 @export var ladder_jump_scale := 0.85
+
+@export_group("Aiming")
+## Aim at the mouse (or touchpad) once it moves. The reticle replaces the cursor.
+@export var mouse_aim := true
+## Aim with the right stick while it's pushed.
+@export var stick_aim := true
+## How far out from the hero the reticle sits when aiming with the stick.
+@export var stick_reticle_distance := 56.0
 
 @export_group("Weapons")
 ## Drop weapon .tres files in here. Q cycles between them, and the first one is
@@ -71,6 +90,14 @@ signal health_changed(current: int, maximum: int)
 
 const MID_CHARGE_TINT := Color(1.35, 1.35, 1.6)
 const FULL_CHARGE_TINT := Color(1.7, 1.9, 2.2)
+## Shoulder height while crouched or sliding, where low shots come from.
+const LOW_SHOULDER_Y := -8.0
+## Mouse travel (in game pixels, at 432x240) needed to switch to mouse aiming,
+## so a bumped desk doesn't take over a keyboard player's aim.
+const MOUSE_WAKE_DISTANCE := 12.0
+
+## STRAIGHT is classic Mega Man: shots go the way you face.
+enum AimMode { STRAIGHT, MOUSE, STICK }
 
 # Standing box is 3 tiles tall so it fits 3-tile corridors; the slide box is
 # short enough to fit a 2-tile (16px) gap.
@@ -81,7 +108,11 @@ const STAND_SIZE := Vector2(12, 24)
 
 var facing := 1
 var sliding := false
+var crouching := false
 var climbing := false
+var aim_mode := AimMode.STRAIGHT
+## Unit vector shots are fired along.
+var aim_dir := Vector2.RIGHT
 ## Set by the room camera during a screen transition -- input is ignored and the
 ## camera moves the player through the doorway itself.
 var frozen := false
@@ -94,6 +125,10 @@ var _invuln := 0.0
 var _spawn_point := Vector2.ZERO
 var _slide_timer := 0.0
 var _slide_cooldown := 0.0
+var _slide_buffer := 0.0
+## Which way the current slide goes. Separate from `facing`, which follows the
+## aim, so you can slide away from where you're shooting.
+var _slide_dir := 1
 var _coyote := 0.0
 var _jump_buffer := 0.0
 var _jump_cut_used := false
@@ -102,14 +137,17 @@ var _charge := 0.0
 var _charging := false
 var _ladder: Area2D = null
 var _shots: Array[Node] = []
-## The muzzle's right-facing position from the scene, mirrored by `facing`.
+## The muzzle's right-facing position from the scene: its y is the standing
+## shoulder height, its x how far out along the aim shots appear.
 var _muzzle_offset := Vector2.ZERO
+var _mouse_travel := 0.0
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var stand_shape: CollisionShape2D = $StandShape
 @onready var slide_shape: CollisionShape2D = $SlideShape
 @onready var muzzle: Marker2D = $Muzzle
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var reticle: Node2D = $Reticle
 
 
 func _ready() -> void:
@@ -121,6 +159,26 @@ func _ready() -> void:
 	$LadderProbe.area_exited.connect(func(a: Area2D) -> void:
 		if _ladder == a:
 			_ladder = null)
+
+
+func _exit_tree() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+## Picks the aiming device from whatever was touched last. Right-stick aiming is
+## picked up in _update_aim, since it's a held state rather than an event.
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		if mouse_aim and aim_mode != AimMode.MOUSE:
+			_mouse_travel += (event as InputEventMouseMotion).relative.length()
+			if _mouse_travel >= MOUSE_WAKE_DISTANCE:
+				_set_aim_mode(AimMode.MOUSE)
+	elif aim_mode == AimMode.MOUSE:
+		# Picking up the controller hands aiming back to it.
+		var pad_button := event is InputEventJoypadButton and event.is_pressed()
+		var pad_stick := event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > 0.5
+		if pad_button or pad_stick:
+			_set_aim_mode(AimMode.STRAIGHT)
 
 
 func _physics_process(delta: float) -> void:
@@ -144,9 +202,12 @@ func _physics_process(delta: float) -> void:
 		_climb(delta)
 	elif sliding:
 		_slide(delta)
+	elif crouching:
+		_crouch(delta)
 	else:
 		_walk(delta)
 
+	_update_aim()
 	_handle_firing(delta)
 	_update_sprite()
 
@@ -162,15 +223,21 @@ func _walk(delta: float) -> void:
 	velocity.x = input_x * run_speed
 	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 
-	# Down + jump slides, as in MM4-6. The C key does the same thing.
-	if _jump_buffer > 0.0 and _coyote > 0.0:
-		if Input.is_action_pressed(&"move_down") and is_on_floor() and _slide_cooldown <= 0.0:
-			_start_slide()
+	# On the ground, holding down always means crouching, from the very first
+	# frame -- unless you're standing on top of a ladder, where it climbs down.
+	if is_on_floor() and Input.is_action_pressed(&"move_down"):
+		if _try_grab_ladder():
 			return
-		_jump()
-	elif Input.is_action_just_pressed(&"slide") and is_on_floor() and _slide_cooldown <= 0.0:
-		_start_slide()
+		_enter_crouch()
+		_crouch(delta)
 		return
+
+	# The slide key works standing up, too.
+	if _slide_buffer > 0.0 and is_on_floor() and _slide_cooldown <= 0.0:
+		_start_slide(input_x)
+		return
+	if _jump_buffer > 0.0 and _coyote > 0.0:
+		_jump()
 
 	# Variable jump height: letting go mid-rise trims what's left of it. Applied
 	# once per jump -- doing it every frame would compound and kill the rise
@@ -196,20 +263,57 @@ func _input_x() -> float:
 func _jump() -> void:
 	velocity.y = jump_velocity
 	_jump_buffer = 0.0
+	_slide_buffer = 0.0
 	_coyote = 0.0
 	_jump_cut_used = false
 
 
-func _start_slide() -> void:
+func _enter_crouch() -> void:
+	if crouching:
+		return
+	crouching = true
+	_set_shape(true)
+
+
+## Crouched: slide-height hitbox, no walking, but you can still turn and shoot.
+## Jump from here always slides, never jumps. A press made a moment too early
+## (the tail of the previous slide, or its cooldown) waits in _slide_buffer
+## until the slide can start, rather than being lost or turning into a jump.
+func _crouch(delta: float) -> void:
+	var input_x := _input_x()
+	var holding := Input.is_action_pressed(&"move_down") and is_on_floor()
+	if not holding and _has_headroom():
+		crouching = false
+		_set_shape(false)
+		_walk(delta)
+		return
+
+	if input_x != 0.0:
+		facing = int(input_x)
+	velocity.x = 0.0
+	velocity.y = minf(velocity.y + gravity * delta, max_fall)
+
+	if _slide_buffer > 0.0 and _slide_cooldown <= 0.0 and is_on_floor():
+		_start_slide(input_x)
+		return
+	move_and_slide()
+
+
+## Slides the way you're pushing, or the way you face if you aren't.
+func _start_slide(dir_x: float) -> void:
 	sliding = true
+	crouching = false
+	_slide_dir = int(dir_x) if dir_x != 0.0 else facing
+	facing = _slide_dir
 	_slide_timer = slide_time
 	_jump_buffer = 0.0
+	_slide_buffer = 0.0
 	_set_shape(true)
 
 
 func _slide(delta: float) -> void:
 	_slide_timer -= delta
-	velocity.x = slide_speed * facing
+	velocity.x = slide_speed * _slide_dir
 	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 	move_and_slide()
 
@@ -218,14 +322,21 @@ func _slide(delta: float) -> void:
 	if not (finished or cancelled):
 		return
 
-	# You can't stand up inside a 2-tile tunnel, so the slide keeps going until
-	# there is headroom again.
+	# Still holding down on the ground: straight into a crouch, same low hitbox,
+	# no standing-up frame in between, ready for the next slide.
+	var crouch_next := not cancelled and is_on_floor() and Input.is_action_pressed(&"move_down")
+
+	# Inside a 2-tile tunnel the slide keeps going until there's headroom again,
+	# even if you're holding down -- stalling in a crouch in there is no fun.
 	if not _has_headroom():
 		_slide_timer = 0.05
 		return
 
 	sliding = false
 	_slide_cooldown = slide_cooldown
+	if crouch_next:
+		crouching = true
+		return
 	_set_shape(false)
 	if cancelled and is_on_floor():
 		_jump()
@@ -247,6 +358,7 @@ func _climb(delta: float) -> void:
 		# Consume the buffered press, or _walk would fire a second, full-strength
 		# jump on the very next frame and override ladder_jump_scale.
 		_jump_buffer = 0.0
+		_slide_buffer = 0.0
 		_coyote = 0.0
 		return
 
@@ -351,8 +463,10 @@ func _fire(weapon: Weapon) -> void:
 	if same_tier >= weapon.max_active:
 		return
 
-	# launch_angle tilts the shot upward whichever way you're facing.
-	var base := Vector2(facing, 0.0).rotated(deg_to_rad(-weapon.launch_angle * facing))
+	# Fired along the aim. launch_angle tilts it upward on whichever side you're
+	# aiming, so the bomb still lobs.
+	var side := signf(aim_dir.x) if absf(aim_dir.x) > 0.05 else float(facing)
+	var base := aim_dir.rotated(deg_to_rad(-weapon.launch_angle * side))
 	var spread := deg_to_rad(weapon.spread_degrees)
 	var count := maxi(weapon.shot_count, 1)
 
@@ -367,6 +481,55 @@ func _fire(weapon: Weapon) -> void:
 		_shots.append(shot)
 
 	_fire_cooldown = weapon.cooldown
+
+
+# ---------------------------------------------------------------------------
+# aiming
+# ---------------------------------------------------------------------------
+## Works out `aim_dir`, turns the hero to face it, and places the muzzle and
+## reticle. Straight mode is classic Mega Man; mouse and stick aim freely.
+func _update_aim() -> void:
+	var shoulder := global_position + _shoulder()
+
+	var stick := Vector2.ZERO
+	if stick_aim:
+		stick = Input.get_vector(&"aim_left", &"aim_right", &"aim_up", &"aim_down")
+	if stick != Vector2.ZERO:
+		if aim_mode != AimMode.STICK:
+			_set_aim_mode(AimMode.STICK)
+		aim_dir = stick.normalized()
+		reticle.global_position = (shoulder + aim_dir * stick_reticle_distance).round()
+	elif aim_mode == AimMode.STICK:
+		# Let go of the stick: back to shooting straight ahead.
+		_set_aim_mode(AimMode.STRAIGHT)
+
+	if aim_mode == AimMode.MOUSE:
+		var to_mouse := get_global_mouse_position() - shoulder
+		if to_mouse.length() > 4.0:
+			aim_dir = to_mouse.normalized()
+	elif aim_mode == AimMode.STRAIGHT:
+		aim_dir = Vector2(facing, 0.0)
+
+	# Free aim turns the hero to face it -- you can back away while shooting
+	# forward. Aiming straight up or down leaves you facing as you were.
+	if aim_mode != AimMode.STRAIGHT and absf(aim_dir.x) > 0.05:
+		facing = 1 if aim_dir.x > 0.0 else -1
+
+	muzzle.position = _shoulder() + aim_dir * _muzzle_offset.x
+
+
+func _set_aim_mode(mode: AimMode) -> void:
+	aim_mode = mode
+	_mouse_travel = 0.0
+	# The reticle stands in for the OS cursor while the mouse is aiming.
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if mode == AimMode.MOUSE else Input.MOUSE_MODE_VISIBLE
+	reticle.set(&"follow_mouse", mode == AimMode.MOUSE)
+	reticle.visible = mode != AimMode.STRAIGHT
+
+
+## Where shots come from, before being pushed out along the aim.
+func _shoulder() -> Vector2:
+	return Vector2(0.0, LOW_SHOULDER_Y if (sliding or crouching) else _muzzle_offset.y)
 
 
 # ---------------------------------------------------------------------------
@@ -389,10 +552,11 @@ func take_damage(amount: int, from: Node = null) -> bool:
 	_invuln = invuln_time
 	climbing = false
 	# Standing up inside a 2-tile tunnel would wedge the hero into the ceiling,
-	# so a hit mid-slide only stands you up where there's room. Otherwise the
-	# slide simply carries on once the stun wears off.
-	if sliding and _has_headroom():
+	# so a hit while low only stands you up where there's room. Otherwise the
+	# slide or crouch simply carries on once the stun wears off.
+	if (sliding or crouching) and _has_headroom():
 		sliding = false
+		crouching = false
 		_set_shape(false)
 
 	var away := -facing
@@ -440,8 +604,11 @@ func respawn() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
 	sliding = false
+	crouching = false
 	climbing = false
 	frozen = false
+	_jump_buffer = 0.0
+	_slide_buffer = 0.0
 	_charging = false
 	_charge = 0.0
 	_hurt_timer = 0.0
@@ -455,14 +622,29 @@ func _tick_timers(delta: float) -> void:
 	_fire_cooldown = maxf(0.0, _fire_cooldown - delta)
 	_slide_cooldown = maxf(0.0, _slide_cooldown - delta)
 	_jump_buffer = maxf(0.0, _jump_buffer - delta)
+	_slide_buffer = maxf(0.0, _slide_buffer - delta)
 	# Climbing doesn't call move_and_slide, so is_on_floor() would stay stuck on
 	# whatever it was before the ladder -- don't trust it while climbing.
-	if is_on_floor() and not climbing:
+	var grounded := is_on_floor() and not climbing
+	if grounded:
 		_coyote = coyote_time
 	else:
 		_coyote = maxf(0.0, _coyote - delta)
+
 	if Input.is_action_just_pressed(&"jump"):
-		_jump_buffer = jump_buffer
+		var down := Input.is_action_pressed(&"move_down")
+		if down and (grounded or sliding or crouching):
+			# Down + jump on the ground is a slide and only a slide -- it never
+			# queues a jump, which is what used to make chained slides hop.
+			_slide_buffer = slide_buffer
+		else:
+			_jump_buffer = jump_buffer
+			# Down + jump in the air: a coyote jump if one's still allowed,
+			# otherwise a slide the moment you land.
+			if down:
+				_slide_buffer = slide_buffer
+	if Input.is_action_just_pressed(&"slide"):
+		_slide_buffer = slide_buffer
 
 	if _invuln > 0.0:
 		_invuln -= delta
@@ -474,11 +656,14 @@ func _tick_timers(delta: float) -> void:
 
 ## True when there's room to stand up where we are.
 func _has_headroom() -> bool:
+	# The box stops 1px above the feet. Reaching all the way down, it touched the
+	# floor you were standing on whenever you sat exactly on it, and read that as
+	# a ceiling -- leaving you stuck crouched or sliding with nothing overhead.
 	var box := RectangleShape2D.new()
-	box.size = STAND_SIZE - Vector2(1.0, 0.0)
+	box.size = STAND_SIZE - Vector2(1.0, 1.0)
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = box
-	query.transform = Transform2D(0.0, global_position + Vector2(0.0, -STAND_SIZE.y * 0.5))
+	query.transform = Transform2D(0.0, global_position + Vector2(0.0, -(STAND_SIZE.y + 1.0) * 0.5))
 	query.collision_mask = 1        # world
 	query.exclude = [get_rid()]
 	return get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty()
@@ -492,11 +677,9 @@ func _set_shape(is_sliding: bool) -> void:
 
 
 func _update_sprite() -> void:
-	sprite.frame = 1 if sliding else 0
-	sprite.flip_h = facing < 0
-	# Always rebuilt from the scene's offset. Mirroring the muzzle's own current
-	# x would lose it for good the first time it ever landed on 0.
-	muzzle.position = Vector2(_muzzle_offset.x * facing, -8.0 if sliding else _muzzle_offset.y)
+	# Crouching shares the slide's low frame for now -- there's no crouch art yet.
+	sprite.frame = 1 if (sliding or crouching) else 0
+	sprite.flip_h = (_slide_dir if sliding else facing) < 0
 
 	# Charging flashes the hero brighter as each tier is reached.
 	var tint := Color.WHITE

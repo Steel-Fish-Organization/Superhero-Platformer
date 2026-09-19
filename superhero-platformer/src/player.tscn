@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://src/weapons/pulse.tres" id="4_pulse"]
 [ext_resource type="Resource" path="res://src/weapons/bomb.tres" id="5_bomb"]
 [ext_resource type="Resource" path="res://src/weapons/ricochet.tres" id="6_rico"]
+[ext_resource type="Script" path="res://src/ui/reticle.gd" id="7_reticle"]
 
 [sub_resource type="RectangleShape2D" id="Rect_stand"]
 size = Vector2(12, 24)
@@ -59,3 +60,6 @@ monitorable = false
 [node name="Shape" type="CollisionShape2D" parent="LadderProbe"]
 position = Vector2(0, -12)
 shape = SubResource("Rect_ladder")
+
+[node name="Reticle" type="Node2D" parent="."]
+script = ExtResource("7_reticle")
