@@ -110,11 +110,25 @@ func _move(step: Vector2) -> void:
 	if step == Vector2.ZERO:
 		return
 	var space := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(
-		global_position, global_position + step + step.normalized())
+	var heading := step.normalized()
+	var destination := global_position + step + heading
+	var query := PhysicsRayQueryParameters2D.create(global_position, destination)
 	query.collision_mask = WORLD
 	query.collide_with_areas = false
 	var hit := space.intersect_ray(query)
+
+	# Shots ignore one-way platforms, both ways round: you can stand on one and
+	# shoot down through it, or shoot up at something standing on it. The ray
+	# restarts just past each one rather than excluding its collider -- a whole
+	# TileMapLayer can share one collider with the solid walls around it.
+	var skips := 0
+	while not hit.is_empty() and skips < 8 and _is_one_way(hit, heading):
+		skips += 1
+		query.from = hit["position"] + heading
+		if query.from.distance_squared_to(global_position) >= destination.distance_squared_to(global_position):
+			hit = {}
+			break
+		hit = space.intersect_ray(query)
 
 	if hit.is_empty():
 		global_position += step
@@ -127,6 +141,24 @@ func _move(step: Vector2) -> void:
 	_bounces_left -= 1
 	velocity = velocity.bounce(hit.get("normal", Vector2.UP)) * bounciness
 	direction = velocity.normalized()
+
+
+## True for the platforms shots are allowed through: one-way tiles, and one-way
+## collision shapes on any body, such as the ledges ladders.gd builds.
+func _is_one_way(hit: Dictionary, heading: Vector2) -> bool:
+	var collider = hit.get("collider")
+	if collider is TileMapLayer:
+		var tiles := collider as TileMapLayer
+		# A hair past the surface, so we read the tile we just hit, not its neighbour.
+		var inside: Vector2 = hit["position"] + heading
+		var data := tiles.get_cell_tile_data(tiles.local_to_map(tiles.to_local(inside)))
+		return data != null and data.is_collision_polygon_one_way(0, 0)
+	if collider is CollisionObject2D:
+		var body := collider as CollisionObject2D
+		var owner_id := body.shape_find_owner(hit.get("shape", 0))
+		var shape := body.shape_owner_get_owner(owner_id)
+		return shape is CollisionShape2D and (shape as CollisionShape2D).one_way_collision
+	return false
 
 
 func _is_offscreen() -> bool:

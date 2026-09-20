@@ -102,6 +102,9 @@ func _room_a() -> void:
 	_oneway(74, 79, LOW_FLOOR - 4)
 	_oneway(82, 87, LOW_FLOOR - 8)
 
+	# a hook over the gap: grab it on the way up and jump off across
+	_hook(25, LOW_FLOOR - 6)
+
 	# a ladder ending in mid-air -- the ledge at its top is generated, not tiled
 	_ladder_column(99, LOW_FLOOR - 10, LOW_FLOOR - 1)
 
@@ -130,6 +133,11 @@ func _room_c() -> void:
 		_column(x, HIGH_FLOOR, HIGH_BOTTOM)
 	_oneway(140, 145, HIGH_FLOOR - 5)
 	_oneway(150, 155, HIGH_FLOOR - 9)
+	# three hooks in a row, spaced to be jumped between. Over open floor, clear of
+	# the one-way platforms: standing on something always beats hanging, so a
+	# platform underneath would just catch you mid-swing.
+	for i in 3:
+		_hook(112 + i * 6, HIGH_FLOOR - 11)
 	_drone(145, HIGH_FLOOR - 12, 24.0)
 	_checkpoint(116, HIGH_FLOOR)
 
@@ -164,6 +172,9 @@ func _room_e() -> void:
 	_slab(184, 194, LOW_FLOOR - 4, LOW_FLOOR - 1)
 	_spawn("res://src/enemies/walker.tscn", "Walker", 189, LOW_FLOOR - 4)
 	_spawn("res://src/enemies/flyer.tscn", "Flyer", 181, LOW_FLOOR - 12)
+	# perches to hang from and shoot down at the enemies below
+	_hook(178, LOW_FLOOR - 9)
+	_hook(197, LOW_FLOOR - 9)
 	_spawn("res://src/enemies/hopper.tscn", "Hopper", 200, LOW_FLOOR)
 	_spawn("res://src/enemies/flyer.tscn", "Flyer", 199, LOW_FLOOR - 16, {&"pattern": 2})   # swoop
 	# a turret on a pedestal at the far end
@@ -269,6 +280,11 @@ func _spawn(path: String, base_name: String, x: int, y: int, props := {}) -> Nod
 
 func _checkpoint(x: int, y: int) -> void:
 	_spawn("res://src/checkpoint.tscn", "Checkpoint", x, y)
+
+
+## A hook to hang from, centred on tile column x at the top edge of row y.
+func _hook(x: int, y: int) -> void:
+	_spawn("res://src/hook.tscn", "Hook", x, y)
 
 
 func _hud() -> void:

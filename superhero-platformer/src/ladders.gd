@@ -100,6 +100,10 @@ func _build_top_platform(centre_x: float, top_y: float) -> void:
 	body.collision_layer = WORLD_LAYER
 	body.collision_mask = 0
 	body.position = Vector2(centre_x, top_y)
+	# Like any one-way platform, the hero can hang from its underside; these two
+	# tell the player where the standable top is.
+	body.add_to_group(&"grabbable")
+	body.set_meta(&"surface_y", top_y)
 	var shape := _box(Vector2(top_platform_width, 2.0))
 	shape.position = Vector2(0.0, 1.0)          # top edge sits exactly on top_y
 	shape.one_way_collision = true

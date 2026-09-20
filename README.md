@@ -13,6 +13,7 @@ Two control layouts, both live at once:
 | jump (hold for height) | **X** or Space | **K** or Space |
 | fire (hold to charge) | **Z** or left click | **J** or left click |
 | crouch | hold **↓** | hold **S** |
+| hang: let go / drop / climb up | **X** / **↓** / **↑** | **K** / **S** / **W** |
 | slide (or crouch + jump) | **C** | **L** |
 | aim | mouse | mouse |
 | next weapon | **Q** | **Q** |
@@ -45,6 +46,26 @@ Shots go straight ahead, Mega Man style, until you pick up an aiming device:
 While aiming, the hero turns to face the reticle, so you can back away while
 shooting forward. Slides still go the way you're *moving*. Turn either device
 off with `mouse_aim` / `stick_aim` on the Player.
+
+### Hanging (Darkwing Duck style)
+
+Jump up into the underside of a **one-way platform** and the hero grabs it.
+**Hooks** (`src/hook.tscn`) catch you from any angle — rising, falling or
+drifting sideways. Hanging, you can shoot in any direction with free aim.
+
+| While hanging | |
+| --- | --- |
+| **jump** | let go and jump |
+| **down** | drop off |
+| **up** | pull up onto the platform you're under (hooks have no top, so nothing happens) |
+
+Letting go blocks grabbing for `regrab_delay` (0.25s), and blocks *that same*
+hook or platform for `same_grab_delay` (0.7s), so jumping straight up off one
+doesn't snap you back onto it. Getting hit shakes you loose.
+
+Standing on something always beats hanging, so don't put a hook just above a
+platform — you'll land on the platform instead of catching the hook. Solid
+ceilings can't be grabbed; only one-way tiles and hooks.
 
 ### Crouch and slide
 
@@ -160,16 +181,19 @@ Five rooms, laid out to exercise both transition directions:
 **Room A** — flat run, 4-tile gap, jump-height ruler (pillars of 2/4/6/8/10
 tiles; it deliberately runs past what the jump reaches so it stays a measuring
 stick while you retune — right now you clear 8 but not 10), a 2-tile slide
-tunnel, one-way platforms, and a ladder that ends in mid-air.
+tunnel, one-way platforms to hang under, a hook over the gap, and a ladder that
+ends in mid-air.
 
 **Room B** — the foot of a long ladder that climbs into room C.
 
-**Room C** — the top of that ladder, coming up through a hole in the floor.
+**Room C** — the top of that ladder, coming up through a hole in the floor, plus
+three hooks in a row to jump between.
 
 **Room D** — shooting gallery, six targets that come back after 2 seconds.
 
 **Room E** — one of each enemy type: two walkers (one pacing a raised block),
-a hopper, a turret on a pedestal, and two flyers (weaving and swooping).
+a hopper, a turret on a pedestal, and two flyers (weaving and swooping). Two
+hooks hang above it, to perch on and shoot down from.
 
 Checkpoints (small flag posts) sit at the entrances to rooms B, C and E.
 
@@ -205,6 +229,11 @@ just leaves that slot empty. Holding fire walks as far up the chain as you held.
 The projectile scenes are all the same `projectile.gd` script with different
 exported values — `gravity_accel` makes it lob, `bounces` makes it ricochet,
 `pierce` lets it pass through enemies, `impact` spawns something when it dies.
+
+Shots of every kind fly straight through **one-way platforms**, in both
+directions — shoot down through the platform you're standing on, or up at
+something standing above you. Solid walls and floors still stop them (and a
+ricochet still bounces off those).
 
 ## Health and damage
 

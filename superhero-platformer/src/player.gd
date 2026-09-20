@@ -66,6 +66,24 @@ signal health_changed(current: int, maximum: int)
 ## Jumping off a ladder uses this share of a normal jump.
 @export var ladder_jump_scale := 0.85
 
+@export_group("Hanging")
+## Jump up into the underside of a one-way platform, or touch a hook from any
+## angle, and the hero latches on -- Darkwing Duck style. Hanging you can shoot
+## in any direction, jump off, drop off with down, or press up to climb onto a
+## platform you're hanging under.
+@export var hang_enabled := true
+## How far below the grabbed surface the hero's feet end up.
+@export var hang_drop := 26.0
+## Jumping off a hang, as a share of a normal jump.
+@export var hang_jump_scale := 1.0
+## After letting go, nothing can be grabbed for this long...
+@export var regrab_delay := 0.25
+## ...and the hook or platform you just left stays off limits for this long, so
+## jumping straight up off one doesn't snap you back onto it.
+@export var same_grab_delay := 0.7
+## How far above the head to look for a platform underside to grab.
+@export var grab_reach := 6.0
+
 @export_group("Aiming")
 ## Aim at the mouse (or touchpad) once it moves. The reticle replaces the cursor.
 @export var mouse_aim := true
@@ -110,6 +128,7 @@ var facing := 1
 var sliding := false
 var crouching := false
 var climbing := false
+var hanging := false
 var aim_mode := AimMode.STRAIGHT
 ## Unit vector shots are fired along.
 var aim_dir := Vector2.RIGHT
@@ -136,6 +155,15 @@ var _fire_cooldown := 0.0
 var _charge := 0.0
 var _charging := false
 var _ladder: Area2D = null
+## What we're hanging from: the world point the hands hold, the top of the
+## platform (INF for a hook, which has no top to climb onto), and the hook node.
+var _hang_anchor := Vector2.ZERO
+var _hang_surface := INF
+var _hang_hook: Area2D = null
+var _regrab := 0.0
+var _last_grab := 0.0
+var _last_grab_anchor := Vector2.ZERO
+var _last_grab_hook: Area2D = null
 var _shots: Array[Node] = []
 ## The muzzle's right-facing position from the scene: its y is the standing
 ## shoulder height, its x how far out along the aim shots appear.
@@ -147,6 +175,7 @@ var _mouse_travel := 0.0
 @onready var slide_shape: CollisionShape2D = $SlideShape
 @onready var muzzle: Marker2D = $Muzzle
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var hook_probe: Area2D = $HookProbe
 @onready var reticle: Node2D = $Reticle
 
 
@@ -198,6 +227,8 @@ func _physics_process(delta: float) -> void:
 
 	if _hurt_timer > 0.0:
 		_hurt(delta)
+	elif hanging:
+		_hang()
 	elif climbing:
 		_climb(delta)
 	elif sliding:
@@ -247,6 +278,11 @@ func _walk(delta: float) -> void:
 		_jump_cut_used = true
 
 	if _try_grab_ladder():
+		return
+
+	# In the air, jumping into a hook or the underside of a one-way platform
+	# latches on.
+	if hang_enabled and not is_on_floor() and _try_hang(delta):
 		return
 
 	move_and_slide()
@@ -403,6 +439,149 @@ func _try_grab_ladder() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# hanging (Darkwing Duck style)
+# ---------------------------------------------------------------------------
+## Looks for something to latch onto, and does it. Hooks catch you from any
+## angle; a platform underside only catches you on the way up, so you don't
+## snag on every ledge you drop past.
+func _try_hang(delta: float) -> bool:
+	if _regrab > 0.0:
+		return false
+
+	for area in hook_probe.get_overlapping_areas():
+		if not _grab_blocked(area, area.global_position):
+			_grab(area.global_position, INF, area)
+			return true
+
+	if velocity.y > 0.0:
+		return false
+	var found := _platform_above(delta)
+	if found.is_empty() or _grab_blocked(null, found["anchor"]):
+		return false
+	_grab(found["anchor"], found["surface"], null)
+	return true
+
+
+## The underside of a one-way platform within reach above the head, as
+## {anchor, surface}, or {} for nothing grabbable. The ray is stretched by this
+## frame's rise so a fast jump can't skip straight past a platform.
+func _platform_above(delta: float) -> Dictionary:
+	var head := global_position + Vector2(0.0, -STAND_SIZE.y)
+	var reach := grab_reach + absf(velocity.y) * delta
+	var query := PhysicsRayQueryParameters2D.create(head, head + Vector2(0.0, -reach))
+	query.collision_mask = 1        # world
+	query.collide_with_areas = false
+	query.exclude = [get_rid()]
+	var hit := get_world_2d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {}
+
+	var anchor := Vector2(global_position.x, hit["position"].y)
+	var collider = hit["collider"]
+	if collider is TileMapLayer:
+		# Only tiles whose collision is one-way: solid ceilings aren't grabbable.
+		var tiles := collider as TileMapLayer
+		var cell := tiles.local_to_map(tiles.to_local(hit["position"] + Vector2(0.0, -1.0)))
+		var data := tiles.get_cell_tile_data(cell)
+		if data == null or not data.is_collision_polygon_one_way(0, 0):
+			return {}
+		var centre := tiles.to_global(tiles.map_to_local(cell))
+		return {"anchor": anchor, "surface": centre.y - float(tiles.tile_set.tile_size.y) * 0.5}
+
+	# The ledges ladders.gd builds on top of each ladder.
+	if collider is Node and (collider as Node).is_in_group(&"grabbable"):
+		return {"anchor": anchor, "surface": (collider as Node).get_meta(&"surface_y", anchor.y)}
+	return {}
+
+
+## Refuses the hook or platform you just let go of, for same_grab_delay.
+func _grab_blocked(hook: Area2D, anchor: Vector2) -> bool:
+	if _last_grab <= 0.0:
+		return false
+	if hook != null:
+		return hook == _last_grab_hook
+	return _last_grab_hook == null \
+		and absf(anchor.y - _last_grab_anchor.y) < 4.0 \
+		and absf(anchor.x - _last_grab_anchor.x) < 12.0
+
+
+func _grab(anchor: Vector2, surface: float, hook: Area2D) -> void:
+	hanging = true
+	sliding = false
+	crouching = false
+	climbing = false
+	_hang_anchor = anchor
+	_hang_surface = surface
+	_hang_hook = hook
+	velocity = Vector2.ZERO
+	_set_shape(false)
+	_snap_to_hang()
+
+
+func _snap_to_hang() -> void:
+	if _hang_hook and is_instance_valid(_hang_hook):
+		# Hooks hold you centred under them; platforms let you hang where you hit.
+		_hang_anchor = _hang_hook.global_position
+		global_position.x = _hang_anchor.x
+	global_position.y = _hang_anchor.y + hang_drop
+
+
+func _hang() -> void:
+	if _hang_hook and not is_instance_valid(_hang_hook):
+		_release(false)
+		return
+
+	velocity = Vector2.ZERO
+	var input_x := _input_x()
+	if input_x != 0.0 and aim_mode == AimMode.STRAIGHT:
+		facing = int(input_x)
+
+	# Jump lets go and jumps; down just drops. Both start the regrab delay, so
+	# you get clear of what you were holding.
+	if Input.is_action_just_pressed(&"jump"):
+		_release(true)
+		return
+	if Input.is_action_just_pressed(&"move_down"):
+		_release(false)
+		return
+	# Up pulls you onto a platform you're hanging under -- the easy way up.
+	if Input.is_action_pressed(&"move_up") and _hang_surface < INF:
+		_climb_onto()
+		return
+
+	_snap_to_hang()
+
+
+func _release(with_jump: bool) -> void:
+	hanging = false
+	_regrab = regrab_delay
+	_last_grab = same_grab_delay
+	_last_grab_anchor = _hang_anchor
+	_last_grab_hook = _hang_hook
+	_hang_hook = null
+	_hang_surface = INF
+	_jump_buffer = 0.0
+	_jump_cut_used = false
+	velocity.x = _input_x() * run_speed
+	velocity.y = jump_velocity * hang_jump_scale if with_jump else 0.0
+
+
+## Pulls up onto the platform being hung from, and stands on it.
+func _climb_onto() -> void:
+	var surface := _hang_surface
+	hanging = false
+	_regrab = regrab_delay
+	_last_grab = same_grab_delay
+	_last_grab_anchor = _hang_anchor
+	_last_grab_hook = null
+	_hang_hook = null
+	_hang_surface = INF
+	# Feet land on the top edge; the platform is one-way, so it holds from here.
+	global_position.y = surface
+	velocity = Vector2.ZERO
+
+
+# ---------------------------------------------------------------------------
 # shooting
 # ---------------------------------------------------------------------------
 ## The weapon currently equipped, or null if the array is empty.
@@ -551,6 +730,9 @@ func take_damage(amount: int, from: Node = null) -> bool:
 	_hurt_timer = hurt_time
 	_invuln = invuln_time
 	climbing = false
+	# Getting hit shakes you off a hook or platform.
+	if hanging:
+		_release(false)
 	# Standing up inside a 2-tile tunnel would wedge the hero into the ceiling,
 	# so a hit while low only stands you up where there's room. Otherwise the
 	# slide or crouch simply carries on once the stun wears off.
@@ -606,9 +788,14 @@ func respawn() -> void:
 	sliding = false
 	crouching = false
 	climbing = false
+	hanging = false
 	frozen = false
+	_hang_hook = null
+	_hang_surface = INF
 	_jump_buffer = 0.0
 	_slide_buffer = 0.0
+	_regrab = 0.0
+	_last_grab = 0.0
 	_charging = false
 	_charge = 0.0
 	_hurt_timer = 0.0
@@ -623,9 +810,13 @@ func _tick_timers(delta: float) -> void:
 	_slide_cooldown = maxf(0.0, _slide_cooldown - delta)
 	_jump_buffer = maxf(0.0, _jump_buffer - delta)
 	_slide_buffer = maxf(0.0, _slide_buffer - delta)
-	# Climbing doesn't call move_and_slide, so is_on_floor() would stay stuck on
-	# whatever it was before the ladder -- don't trust it while climbing.
-	var grounded := is_on_floor() and not climbing
+	_regrab = maxf(0.0, _regrab - delta)
+	_last_grab = maxf(0.0, _last_grab - delta)
+	# Climbing and hanging don't call move_and_slide, so is_on_floor() stays stuck
+	# on whatever it was beforehand -- don't trust it in either state. Left as is,
+	# a hang begun from the ground would keep refreshing coyote time and hand you
+	# a free mid-air jump the moment you dropped off.
+	var grounded := is_on_floor() and not climbing and not hanging
 	if grounded:
 		_coyote = coyote_time
 	else:

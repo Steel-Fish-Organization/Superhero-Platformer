@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -16,6 +16,9 @@ size = Vector2(12, 14)
 
 [sub_resource type="RectangleShape2D" id="Rect_ladder"]
 size = Vector2(4, 24)
+
+[sub_resource type="RectangleShape2D" id="Rect_hook"]
+size = Vector2(16, 28)
 
 [sub_resource type="RectangleShape2D" id="Rect_hurt"]
 size = Vector2(10, 22)
@@ -63,3 +66,12 @@ shape = SubResource("Rect_ladder")
 
 [node name="Reticle" type="Node2D" parent="."]
 script = ExtResource("7_reticle")
+
+[node name="HookProbe" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 128
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="HookProbe"]
+position = Vector2(0, -14)
+shape = SubResource("Rect_hook")
