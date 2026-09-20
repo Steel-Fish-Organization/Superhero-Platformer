@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dynvrv8es2ibk"
+path="res://.godot/imported/Enemy Damage 1.mp3-5aebf5f71cbbe2caa46cf85769b38227.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Enemies/Enemy Damage 1.mp3"
+dest_files=["res://.godot/imported/Enemy Damage 1.mp3-5aebf5f71cbbe2caa46cf85769b38227.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

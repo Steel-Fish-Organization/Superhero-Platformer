@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://btiffjqxdwcff"
+path="res://.godot/imported/Menu Theme.mp3-533ca145dd61951dae93f374257ac064.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/Songs/Menu Theme.mp3"
+dest_files=["res://.godot/imported/Menu Theme.mp3-533ca145dd61951dae93f374257ac064.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

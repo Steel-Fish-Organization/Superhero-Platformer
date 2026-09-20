@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://2kue3it2fj0g"
+path="res://.godot/imported/Hacking Fail.mp3-e3e8e9ee75ee46ee92b7a811ea651f5f.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - UI/Hacking Fail.mp3"
+dest_files=["res://.godot/imported/Hacking Fail.mp3-e3e8e9ee75ee46ee92b7a811ea651f5f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

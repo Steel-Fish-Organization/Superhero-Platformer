@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bjg2eaeyn8ejg"
+path="res://.godot/imported/Enemy Step 3.mp3-281cc4d86280e65aec21e3fd51c9a566.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Enemies/Enemy Step 3.mp3"
+dest_files=["res://.godot/imported/Enemy Step 3.mp3-281cc4d86280e65aec21e3fd51c9a566.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cdx0n2pj8wld5"
+path="res://.godot/imported/Shotgun Shot.mp3-5913717c819364d1722b1b4f5513fa06.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Weapons/Shots/Shotgun Shot.mp3"
+dest_files=["res://.godot/imported/Shotgun Shot.mp3-5913717c819364d1722b1b4f5513fa06.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

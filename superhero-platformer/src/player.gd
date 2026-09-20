@@ -169,6 +169,8 @@ var _shots: Array[Node] = []
 ## shoulder height, its x how far out along the aim shots appear.
 var _muzzle_offset := Vector2.ZERO
 var _mouse_travel := 0.0
+var _was_on_floor := false
+var _floor_state_initialized := false
 
 @onready var sprite: Sprite2D = $Sprite
 @onready var stand_shape: CollisionShape2D = $StandShape
@@ -238,6 +240,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_walk(delta)
 
+	_check_landing()
 	_update_aim()
 	_handle_firing(delta)
 	_update_sprite()
@@ -302,6 +305,7 @@ func _jump() -> void:
 	_slide_buffer = 0.0
 	_coyote = 0.0
 	_jump_cut_used = false
+	$SFX/SndJump.play()
 
 
 func _enter_crouch() -> void:
@@ -337,6 +341,7 @@ func _crouch(delta: float) -> void:
 
 ## Slides the way you're pushing, or the way you face if you aren't.
 func _start_slide(dir_x: float) -> void:
+	$SFX/SndSlide.play()
 	sliding = true
 	crouching = false
 	_slide_dir = int(dir_x) if dir_x != 0.0 else facing
@@ -506,6 +511,7 @@ func _grab_blocked(hook: Area2D, anchor: Vector2) -> bool:
 
 
 func _grab(anchor: Vector2, surface: float, hook: Area2D) -> void:
+	$SFX/SndGrab.play()
 	hanging = true
 	sliding = false
 	crouching = false
@@ -610,13 +616,17 @@ func _handle_firing(delta: float) -> void:
 	# Mega Man 4+ rule: pressing fire shoots immediately AND starts charging.
 	# Releasing after passing a threshold fires that tier instead.
 	if Input.is_action_just_pressed(&"fire"):
+		$SFX/SndCharge.stop()
 		_fire(weapon)
 		if weapon.can_charge():
 			_charging = true
 			_charge = 0.0
 	elif _charging and Input.is_action_pressed(&"fire"):
 		_charge += delta
+		if $SFX/SndCharge.playing == false and _charge > 0.5:
+			$SFX/SndCharge.play()
 	elif _charging:
+		$SFX/SndCharge.stop()
 		_charging = false
 		var tier := weapon.tier_for(_charge)
 		if tier != weapon:
@@ -721,6 +731,8 @@ func take_damage(amount: int, from: Node = null) -> bool:
 	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen:
 		return false
 
+	$SFX/SndDamage.play()
+
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	if health <= 0:
@@ -775,6 +787,16 @@ func _check_contact() -> void:
 # ---------------------------------------------------------------------------
 # housekeeping
 # ---------------------------------------------------------------------------
+func _check_landing() -> void:
+	var on_floor := is_on_floor()
+	if not _floor_state_initialized:
+		_floor_state_initialized = true
+	else:
+		if on_floor and not _was_on_floor:
+			$SFX/SndLand.play()
+	_was_on_floor = on_floor
+
+
 ## Checkpoints call this. Death, pits and R all bring you back here from now on.
 func set_checkpoint(point: Vector2) -> void:
 	_spawn_point = point

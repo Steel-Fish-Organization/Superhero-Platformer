@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cbmljwo80q0iq"
+path="res://.godot/imported/Repair Kit.mp3-51a1bb1d3936a1804289f5b4afb47dd7.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Environment/Repair Kit.mp3"
+dest_files=["res://.godot/imported/Repair Kit.mp3-51a1bb1d3936a1804289f5b4afb47dd7.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

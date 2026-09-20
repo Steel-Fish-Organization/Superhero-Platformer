@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bmeuwpon4vsk0"
+path="res://.godot/imported/Grenade Launcher Shot.mp3-20f63bbbebfbbfd6ed2a78a07ea26748.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Weapons/Shots/Grenade Launcher Shot.mp3"
+dest_files=["res://.godot/imported/Grenade Launcher Shot.mp3-20f63bbbebfbbfd6ed2a78a07ea26748.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

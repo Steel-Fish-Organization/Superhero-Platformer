@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ckk7aifrqwk6t"
+path="res://.godot/imported/Shotgun Shot (future).mp3-75a4fc450cef9cd73eebf9a7a68b75ca.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Weapons/Shots (future guns)/Shotgun Shot (future).mp3"
+dest_files=["res://.godot/imported/Shotgun Shot (future).mp3-75a4fc450cef9cd73eebf9a7a68b75ca.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

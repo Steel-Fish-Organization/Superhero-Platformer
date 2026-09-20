@@ -1,12 +1,18 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=19 format=3 uid="uid://crcl3y6pb76dj"]
 
-[ext_resource type="Script" path="res://src/player.gd" id="1_player"]
-[ext_resource type="Texture2D" path="res://assets/greybox/player.png" id="2_sheet"]
-[ext_resource type="Script" path="res://src/weapon.gd" id="3_weapon"]
+[ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
+[ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
+[ext_resource type="Script" uid="uid://dbg11fvgonjfx" path="res://src/weapon.gd" id="3_weapon"]
 [ext_resource type="Resource" path="res://src/weapons/pulse.tres" id="4_pulse"]
 [ext_resource type="Resource" path="res://src/weapons/bomb.tres" id="5_bomb"]
 [ext_resource type="Resource" path="res://src/weapons/ricochet.tres" id="6_rico"]
-[ext_resource type="Script" path="res://src/ui/reticle.gd" id="7_reticle"]
+[ext_resource type="Script" uid="uid://pw0qq2w3ol6i" path="res://src/ui/reticle.gd" id="7_reticle"]
+[ext_resource type="AudioStream" uid="uid://d3nddwwhhyf6l" path="res://assets/8Bit-Sounds/SFX - Player/Jump.mp3" id="8_nrj4s"]
+[ext_resource type="AudioStream" uid="uid://chf2qsrd1k71o" path="res://assets/8Bit-Sounds/SFX - Player/Land Jump.mp3" id="9_rclot"]
+[ext_resource type="AudioStream" uid="uid://0vv8mgsymjrq" path="res://assets/8Bit-Sounds/SFX - Player/Item Pickup.mp3" id="10_hclnh"]
+[ext_resource type="AudioStream" uid="uid://cbmljwo80q0iq" path="res://assets/8Bit-Sounds/SFX - Environment/Repair Kit.mp3" id="11_ndfpv"]
+[ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
+[ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
 
 [sub_resource type="RectangleShape2D" id="Rect_stand"]
 size = Vector2(12, 24)
@@ -14,18 +20,17 @@ size = Vector2(12, 24)
 [sub_resource type="RectangleShape2D" id="Rect_slide"]
 size = Vector2(12, 14)
 
+[sub_resource type="RectangleShape2D" id="Rect_hurt"]
+size = Vector2(10, 22)
+
 [sub_resource type="RectangleShape2D" id="Rect_ladder"]
 size = Vector2(4, 24)
 
 [sub_resource type="RectangleShape2D" id="Rect_hook"]
 size = Vector2(16, 28)
 
-[sub_resource type="RectangleShape2D" id="Rect_hurt"]
-size = Vector2(10, 22)
-
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("1_player")
 weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5_bomb"), ExtResource("6_rico")])
 
@@ -75,3 +80,23 @@ monitorable = false
 [node name="Shape" type="CollisionShape2D" parent="HookProbe"]
 position = Vector2(0, -14)
 shape = SubResource("Rect_hook")
+
+[node name="SFX" type="Node2D" parent="."]
+
+[node name="SndJump" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("8_nrj4s")
+
+[node name="SndLand" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("9_rclot")
+
+[node name="SndCharge" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("11_ndfpv")
+
+[node name="SndSlide" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("11_nic3v")
+
+[node name="SndGrab" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("10_hclnh")
+
+[node name="SndDamage" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("12_dxtnc")

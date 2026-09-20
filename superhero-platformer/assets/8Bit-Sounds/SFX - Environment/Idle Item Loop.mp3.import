@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://48d4y1c4rbj1"
+path="res://.godot/imported/Idle Item Loop.mp3-220cedb8b06ab53f286afaf8d34cf3f0.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Environment/Idle Item Loop.mp3"
+dest_files=["res://.godot/imported/Idle Item Loop.mp3-220cedb8b06ab53f286afaf8d34cf3f0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

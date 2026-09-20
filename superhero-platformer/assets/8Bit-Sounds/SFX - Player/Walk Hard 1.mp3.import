@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cvwp2nik2eqfb"
+path="res://.godot/imported/Walk Hard 1.mp3-f9d8781ca442ca0902c0341124f0b959.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Player/Walk Hard 1.mp3"
+dest_files=["res://.godot/imported/Walk Hard 1.mp3-f9d8781ca442ca0902c0341124f0b959.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

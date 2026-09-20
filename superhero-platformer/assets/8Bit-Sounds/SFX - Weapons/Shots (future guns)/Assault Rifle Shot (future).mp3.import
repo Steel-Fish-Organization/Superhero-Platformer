@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cctw6f5lmb7wy"
+path="res://.godot/imported/Assault Rifle Shot (future).mp3-99dba6d159789d3bf49563be82b02254.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Weapons/Shots (future guns)/Assault Rifle Shot (future).mp3"
+dest_files=["res://.godot/imported/Assault Rifle Shot (future).mp3-99dba6d159789d3bf49563be82b02254.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

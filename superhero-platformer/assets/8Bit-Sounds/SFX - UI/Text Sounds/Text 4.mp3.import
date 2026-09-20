@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ciortpispaf7k"
+path="res://.godot/imported/Text 4.mp3-61a84b1824dd465d8b86c595bdd4563c.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - UI/Text Sounds/Text 4.mp3"
+dest_files=["res://.godot/imported/Text 4.mp3-61a84b1824dd465d8b86c595bdd4563c.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

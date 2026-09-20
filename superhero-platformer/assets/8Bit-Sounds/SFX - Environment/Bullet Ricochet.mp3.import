@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://mdws35rsfohx"
+path="res://.godot/imported/Bullet Ricochet.mp3-b5f837669a2a4107af44e1ff42391fc4.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Environment/Bullet Ricochet.mp3"
+dest_files=["res://.godot/imported/Bullet Ricochet.mp3-b5f837669a2a4107af44e1ff42391fc4.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

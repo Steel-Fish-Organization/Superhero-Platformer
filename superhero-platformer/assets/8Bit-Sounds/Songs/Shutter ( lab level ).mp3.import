@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cqkw4k42qw1p3"
+path="res://.godot/imported/Shutter ( lab level ).mp3-af40a0b7faf67f45f73a845e5ca4148f.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/Songs/Shutter ( lab level ).mp3"
+dest_files=["res://.godot/imported/Shutter ( lab level ).mp3-af40a0b7faf67f45f73a845e5ca4148f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

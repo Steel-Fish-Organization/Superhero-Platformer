@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b52p0pfgq8vql"
+path="res://.godot/imported/Reload 3.mp3-86340f2bceda8ead9ac9c05ba66b7aa8.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Weapons/Reloads/Reload 3.mp3"
+dest_files=["res://.godot/imported/Reload 3.mp3-86340f2bceda8ead9ac9c05ba66b7aa8.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

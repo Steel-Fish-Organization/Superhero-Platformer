@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://ck42xg4v6uvvd"
+path="res://.godot/imported/Robot Voiceline 2.mp3-c0f699511c6796819320f038ea8dba09.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Enemies/Robot Voiceline 2.mp3"
+dest_files=["res://.godot/imported/Robot Voiceline 2.mp3-c0f699511c6796819320f038ea8dba09.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

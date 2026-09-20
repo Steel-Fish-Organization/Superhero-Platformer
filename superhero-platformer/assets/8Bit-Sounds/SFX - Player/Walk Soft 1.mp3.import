@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://brbtf38ya7bux"
+path="res://.godot/imported/Walk Soft 1.mp3-63799e152e629cb51d5983caff4026f5.mp3str"
+
+[deps]
+
+source_file="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 1.mp3"
+dest_files=["res://.godot/imported/Walk Soft 1.mp3-63799e152e629cb51d5983caff4026f5.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0.0
+bpm=0.0
+beat_count=0
+bar_beats=4
