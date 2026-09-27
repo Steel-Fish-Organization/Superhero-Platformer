@@ -891,7 +891,7 @@ func _set_shape(is_sliding: bool) -> void:
 
 func _update_sprite() -> void:
 	# Crouching shares the slide's low frame for now -- there's no crouch art yet.
-	sprite.frame = 1 if (sliding or crouching) else 0
+	sprite.frame = 1 if (sliding or crouching) else sprite.frame
 	sprite.flip_h = (_slide_dir if sliding else facing) < 0
 
 	# Charging flashes the hero brighter as each tier is reached.

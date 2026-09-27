@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=33 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://src/weapons/pulse.tres" id="4_pulse"]
 [ext_resource type="Resource" path="res://src/weapons/bomb.tres" id="5_bomb"]
 [ext_resource type="Resource" path="res://src/weapons/ricochet.tres" id="6_rico"]
+[ext_resource type="Texture2D" uid="uid://blqo4pv1dvw0r" path="res://assets/sprites/player_sprite_rough_wip.png" id="7_fxwnc"]
 [ext_resource type="Script" uid="uid://pw0qq2w3ol6i" path="res://src/ui/reticle.gd" id="7_reticle"]
 [ext_resource type="AudioStream" uid="uid://d3nddwwhhyf6l" path="res://assets/8Bit-Sounds/SFX - Player/Jump.mp3" id="8_nrj4s"]
 [ext_resource type="AudioStream" uid="uid://chf2qsrd1k71o" path="res://assets/8Bit-Sounds/SFX - Player/Land Jump.mp3" id="9_rclot"]
@@ -13,6 +14,103 @@
 [ext_resource type="AudioStream" uid="uid://cbmljwo80q0iq" path="res://assets/8Bit-Sounds/SFX - Environment/Repair Kit.mp3" id="11_ndfpv"]
 [ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
 [ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hc2cd"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 0, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mlfxl"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 0, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nc72e"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 0, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qntp5"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 0, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8wfru"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aofjl"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_euala"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hj5eh"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_126wl"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wwu71"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(144, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_856a1"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(168, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jo1vc"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(192, 32, 24, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wihxi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hc2cd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mlfxl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nc72e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qntp5")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8wfru")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aofjl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_euala")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hj5eh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_126wl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wwu71")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_856a1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jo1vc")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
 
 [sub_resource type="RectangleShape2D" id="Rect_stand"]
 size = Vector2(12, 24)
@@ -35,23 +133,40 @@ script = ExtResource("1_player")
 weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5_bomb"), ExtResource("6_rico")])
 
 [node name="Sprite" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(0, -16)
 texture = ExtResource("2_sheet")
 hframes = 2
 
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -16)
+sprite_frames = SubResource("SpriteFrames_wihxi")
+animation = &"walk"
+autoplay = "idle"
+frame = 6
+frame_progress = 0.5184244
+
+[node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
+visible = false
+stream = ExtResource("11_nic3v")
+
 [node name="StandShape" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -12)
 shape = SubResource("Rect_stand")
 
 [node name="SlideShape" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -7)
 shape = SubResource("Rect_slide")
 disabled = true
 
 [node name="Muzzle" type="Marker2D" parent="."]
+visible = false
 position = Vector2(10, -16)
 
 [node name="Hurtbox" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 4
 monitorable = false
@@ -61,6 +176,7 @@ position = Vector2(0, -12)
 shape = SubResource("Rect_hurt")
 
 [node name="LadderProbe" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 16
 monitorable = false
@@ -70,9 +186,11 @@ position = Vector2(0, -12)
 shape = SubResource("Rect_ladder")
 
 [node name="Reticle" type="Node2D" parent="."]
+visible = false
 script = ExtResource("7_reticle")
 
 [node name="HookProbe" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 128
 monitorable = false
@@ -82,6 +200,7 @@ position = Vector2(0, -14)
 shape = SubResource("Rect_hook")
 
 [node name="SFX" type="Node2D" parent="."]
+visible = false
 
 [node name="SndJump" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("8_nrj4s")
@@ -91,9 +210,6 @@ stream = ExtResource("9_rclot")
 
 [node name="SndCharge" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("11_ndfpv")
-
-[node name="SndSlide" type="AudioStreamPlayer2D" parent="SFX"]
-stream = ExtResource("11_nic3v")
 
 [node name="SndGrab" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("10_hclnh")
