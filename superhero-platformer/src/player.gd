@@ -173,6 +173,7 @@ var _was_on_floor := false
 var _floor_state_initialized := false
 
 @onready var sprite: Sprite2D = $Sprite
+@onready var anim_spr: AnimatedSprite2D = $AnimatedSprite
 @onready var stand_shape: CollisionShape2D = $StandShape
 @onready var slide_shape: CollisionShape2D = $SlideShape
 @onready var muzzle: Marker2D = $Muzzle
@@ -891,8 +892,18 @@ func _set_shape(is_sliding: bool) -> void:
 
 func _update_sprite() -> void:
 	# Crouching shares the slide's low frame for now -- there's no crouch art yet.
-	sprite.frame = 1 if (sliding or crouching) else sprite.frame
-	sprite.flip_h = (_slide_dir if sliding else facing) < 0
+	if sliding or crouching:
+		anim_spr.animation = "slide"
+	elif velocity.y < 0:
+		anim_spr.animation = "jump"
+	elif velocity.y > 0:
+		anim_spr.animation = "fall"
+	else:
+		if _input_x() != 0:
+			anim_spr.animation = "walk"
+		else:
+			anim_spr.animation = "idle"
+	anim_spr.flip_h = (_slide_dir if sliding else facing) < 0
 
 	# Charging flashes the hero brighter as each tier is reached.
 	var tint := Color.WHITE
@@ -905,3 +916,22 @@ func _update_sprite() -> void:
 			var top := FULL_CHARGE_TINT if tier.charged == null else MID_CHARGE_TINT
 			tint = top if flash else Color.WHITE
 	sprite.modulate = tint
+	
+	
+	
+
+## SIGNALS
+func _on_animated_sprite_animation_changed() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_animation_finished() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_animation_looped() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_frame_changed() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_sprite_frames_changed() -> void:
+	pass # Replace with function body.

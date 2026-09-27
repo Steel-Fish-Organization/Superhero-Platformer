@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=37 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -14,6 +14,11 @@
 [ext_resource type="AudioStream" uid="uid://cbmljwo80q0iq" path="res://assets/8Bit-Sounds/SFX - Environment/Repair Kit.mp3" id="11_ndfpv"]
 [ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
 [ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
+[ext_resource type="AudioStream" uid="uid://brbtf38ya7bux" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 1.mp3" id="13_hc2cd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wihxi"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 32, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hc2cd"]
 atlas = ExtResource("7_fxwnc")
@@ -30,6 +35,14 @@ region = Rect2(72, 0, 24, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_qntp5"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(96, 0, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fxwnc"]
+atlas = ExtResource("2_sheet")
+region = Rect2(24, 16, 24, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8wfru"]
 atlas = ExtResource("7_fxwnc")
@@ -67,6 +80,14 @@ region = Rect2(192, 32, 24, 32)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_wihxi")
+}],
+"loop": true,
+"name": &"fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_hc2cd")
 }, {
 "duration": 1.0,
@@ -80,6 +101,22 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4huw0")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fxwnc")
+}],
+"loop": true,
+"name": &"slide",
 "speed": 5.0
 }, {
 "frames": [{
@@ -138,13 +175,11 @@ position = Vector2(0, -16)
 texture = ExtResource("2_sheet")
 hframes = 2
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"walk"
+animation = &"fall"
 autoplay = "idle"
-frame = 6
-frame_progress = 0.5184244
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false
@@ -200,7 +235,6 @@ position = Vector2(0, -14)
 shape = SubResource("Rect_hook")
 
 [node name="SFX" type="Node2D" parent="."]
-visible = false
 
 [node name="SndJump" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("8_nrj4s")
@@ -211,8 +245,17 @@ stream = ExtResource("9_rclot")
 [node name="SndCharge" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("11_ndfpv")
 
+[node name="SndSlide" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("13_hc2cd")
+
 [node name="SndGrab" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("10_hclnh")
 
 [node name="SndDamage" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("12_dxtnc")
+
+[connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
+[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]
+[connection signal="animation_looped" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_looped"]
+[connection signal="frame_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_frame_changed"]
+[connection signal="sprite_frames_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_sprite_frames_changed"]
