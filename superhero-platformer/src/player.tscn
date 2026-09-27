@@ -178,7 +178,7 @@ hframes = 2
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"fall"
+animation = &"walk"
 autoplay = "idle"
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]

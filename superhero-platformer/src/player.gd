@@ -863,9 +863,9 @@ func _tick_timers(delta: float) -> void:
 	if _invuln > 0.0:
 		_invuln -= delta
 		# flicker while you can't be hit
-		sprite.visible = fmod(_invuln, 0.12) < 0.06
+		anim_spr.visible = fmod(_invuln, 0.12) < 0.06
 		if _invuln <= 0.0:
-			sprite.visible = true
+			anim_spr.visible = true
 
 
 ## True when there's room to stand up where we are.
@@ -900,7 +900,11 @@ func _update_sprite() -> void:
 		anim_spr.animation = "fall"
 	else:
 		if _input_x() != 0:
-			anim_spr.animation = "walk"
+			print("facing: ", facing)
+			if (_input_x() > 0 and facing == 1) or (_input_x() < 0 and facing == -1):
+				anim_spr.play("walk")
+			elif (_input_x() > 0 and facing == -1) or (_input_x() < 0 and facing == 1):
+				anim_spr.play_backwards("walk")
 		else:
 			anim_spr.animation = "idle"
 	anim_spr.flip_h = (_slide_dir if sliding else facing) < 0
