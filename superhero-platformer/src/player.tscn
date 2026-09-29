@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=43 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -39,6 +39,30 @@ region = Rect2(96, 0, 24, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(72, 32, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atx3q"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 64, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d28pn"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 64, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2hj6y"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 64, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m3eag"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 64, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fxrqa"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 64, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u6c26"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(144, 64, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fxwnc"]
 atlas = ExtResource("2_sheet")
@@ -113,6 +137,29 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_atx3q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d28pn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2hj6y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m3eag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fxrqa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u6c26")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_fxwnc")
 }],
 "loop": true,
@@ -178,8 +225,9 @@ hframes = 2
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"walk"
+animation = &"run"
 autoplay = "idle"
+frame_progress = 0.2581988
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false
