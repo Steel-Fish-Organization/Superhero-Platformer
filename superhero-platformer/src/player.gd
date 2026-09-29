@@ -6,14 +6,15 @@ extends CharacterBody2D
 ## per-frame values from the games are noted in the comments.
 ##
 ## Controls (either layout):
-##   arrows / WASD   move and climb
-##   X / K / Space   jump, hold for height
-##   Z / J / LMB     fire, hold to charge
-##   C / L           slide (or down + jump)
-##   hold down       crouch (on the ground)
-##   mouse           aim, once it moves
-##   Q               next weapon
-##   R               respawn
+##   arrows / WASD   			move and climb
+##	 left shift	+ arrows/WASD	hold to run
+##   X / K / Space   			jump, hold for height
+##   Z / J / LMB     			fire, hold to charge
+##   C / L           			slide (or down + jump)
+##   hold down       			crouch (on the ground)
+##   mouse           			aim, once it moves
+##   Q               			next weapon
+##   R              			 respawn
 ##
 ## Gamepad: left stick / D-pad move, right stick aims. Jump A or LT, fire X or
 ## RT, slide B or LB -- the shoulder buttons are there so you can keep your
@@ -172,7 +173,6 @@ var _mouse_travel := 0.0
 var _was_on_floor := false
 var _floor_state_initialized := false
 
-@onready var sprite: Sprite2D = $Sprite
 @onready var anim_spr: AnimatedSprite2D = $AnimatedSprite
 @onready var stand_shape: CollisionShape2D = $StandShape
 @onready var slide_shape: CollisionShape2D = $SlideShape
@@ -254,8 +254,13 @@ func _walk(delta: float) -> void:
 	var input_x := _input_x()
 	if input_x != 0.0:
 		facing = int(input_x)
-
-	velocity.x = input_x * run_speed
+	
+	if Input.is_action_pressed("run"):
+		# run if run key is pressed
+		velocity.x = input_x * run_speed * 2
+	else:
+		# walk if run key is not pressed
+		velocity.x = input_x * run_speed
 	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 
 	# On the ground, holding down always means crouching, from the very first
@@ -823,7 +828,6 @@ func respawn() -> void:
 	_charge = 0.0
 	_hurt_timer = 0.0
 	_invuln = 0.0
-	sprite.visible = true
 	_set_shape(false)
 	respawned.emit()
 
@@ -902,9 +906,15 @@ func _update_sprite() -> void:
 		if _input_x() != 0:
 			print("facing: ", facing)
 			if (_input_x() > 0 and facing == 1) or (_input_x() < 0 and facing == -1):
-				anim_spr.play("walk")
+				if Input.is_action_pressed("run"):
+					anim_spr.play("run")
+				else:
+					anim_spr.play("walk")
 			elif (_input_x() > 0 and facing == -1) or (_input_x() < 0 and facing == 1):
-				anim_spr.play_backwards("walk")
+				if Input.is_action_pressed("run"):
+					anim_spr.play_backwards("run")
+				else:
+					anim_spr.play_backwards("walk")
 		else:
 			anim_spr.animation = "idle"
 	anim_spr.flip_h = (_slide_dir if sliding else facing) < 0
@@ -919,7 +929,7 @@ func _update_sprite() -> void:
 			var flash := int(Time.get_ticks_msec() / 60.0) % 2 == 0
 			var top := FULL_CHARGE_TINT if tier.charged == null else MID_CHARGE_TINT
 			tint = top if flash else Color.WHITE
-	sprite.modulate = tint
+	anim_spr.modulate = tint
 	
 	
 	

@@ -216,12 +216,6 @@ collision_layer = 2
 script = ExtResource("1_player")
 weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5_bomb"), ExtResource("6_rico")])
 
-[node name="Sprite" type="Sprite2D" parent="."]
-visible = false
-position = Vector2(0, -16)
-texture = ExtResource("2_sheet")
-hframes = 2
-
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
