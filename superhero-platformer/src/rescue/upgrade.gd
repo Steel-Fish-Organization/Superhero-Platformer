@@ -15,3 +15,6 @@ extends Resource
 ## Player properties to set, e.g. {"max_health": 32, "charge_rate": 1.6}.
 ## Applied over the hero's starting values, so removing an upgrade is clean.
 @export var player_properties: Dictionary = {}
+## Things the hero can now do that they couldn't before: &"double_jump",
+## &"air_dash", &"hook_boost". The player checks these with has_ability().
+@export var abilities: Array[StringName] = []

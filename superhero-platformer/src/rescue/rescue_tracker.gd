@@ -12,7 +12,7 @@ signal letter_found(letter: String, who: String)
 ## Which stage this is, for the save file.
 @export var stage_id: StringName = &"greybox"
 ## Earned by getting everyone out alive. The reward for the harder path.
-@export var clean_sweep_reward: Upgrade
+@export var clean_sweep_rewards: Array[Upgrade] = []
 
 var total := 0
 var saved := 0
@@ -53,8 +53,9 @@ func _on_rescued(civilian: Civilian) -> void:
 	if state and civilian.upgrade:
 		state.unlock(civilian.upgrade)
 	# Everyone out alive earns the clean sweep.
-	if saved >= total and lost == 0 and state and clean_sweep_reward:
-		state.unlock(clean_sweep_reward)
+	if saved >= total and lost == 0 and state:
+		for reward in clean_sweep_rewards:
+			state.unlock(reward)
 	_publish()
 
 

@@ -280,9 +280,26 @@ particular one does:
 
 | Upgrade | Earned by | Does |
 | --- | --- | --- |
-| **Charge Coil** | rescuing Ada | buster charges 1.6× faster |
-| **Field Medic Training** | getting *everyone* out of a stage alive | +4 max health |
+| **Air Dash** | rescuing Dex, trapped in the slide tunnel | slide button in mid-air: a flat burst forward, once per jump |
+| **Charge Coil** | rescuing Ada, up on the platforms | buster charges 1.6× faster |
+| **Second Wind** | rescuing Juno, the one on a danger clock | one mid-air jump |
+| **Field Medic Training** | getting *everyone* out alive | +4 max health |
+| **Swing Training** | getting *everyone* out alive | launch off hooks and ledges harder |
 | **Guardian Protocol** | collecting every letter | shorter stun, longer i-frames |
+
+An upgrade can set player values (`player_properties`) or grant an **ability**
+(`abilities`) the player checks with `has_ability()`. The three abilities:
+
+- **Air dash** — the slide button off the ground. Flat, no gravity, one per trip
+  through the air, and you can jump or grab a hook straight out of it.
+- **Second wind** — one extra jump in mid-air, with the same hold-for-height cut
+  as the first. Recharges on the ground, on a ladder, and on a hook.
+- **Swing training** — jumping off a hook or ledge launches you 1.6× faster and
+  1.2× higher.
+
+Note what this means for the stage: **Juno is the only upgrade you can lose**, since
+she's the one on a timer, and two more wait on getting everyone out alive. Rushing
+the exit costs you three of the six.
 
 The letters spell **GUARDIAN**, one per stage. `GameState` (autoloaded) keeps
 the letters, the upgrades and a per-stage record of who you saved, and writes
@@ -290,7 +307,21 @@ them to `user://progress.json` as plain JSON. Replaying a stage can only improve
 its record, so going back for someone you missed is never a risk.
 
 Upgrades are applied over the values in `player.tscn` and rebuilt from those each
-time, so they can't stack on themselves. `src/rescue/alert.gd` is the cost of
+time, so they can't stack on themselves.
+
+### Dev keys
+
+In debug builds only (they can't reach a player):
+
+| Key | |
+| --- | --- |
+| **F1** | grant every upgrade on disk |
+| **F2** | wipe progress, on disk and in memory |
+| **F3** | save now |
+| **F4** | print what you have to the console |
+
+Earned upgrades are listed in the bottom-left of the HUD, with a banner when one
+is earned. `src/rescue/alert.gd` is the cost of
 stopping to help.
 
 ### The alert level
@@ -352,6 +383,7 @@ godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 | `test_camera` | room scrolls, respawn mid-scroll, up-needs-a-ladder, checkpoints |
 | `test_rescue` | rescuing, danger clocks, losing someone, the alert level |
 | `test_progress` | the save file, letters, upgrades reaching the hero |
+| `test_abilities` | air dash, double jump and hook boost — locked *and* unlocked |
 
 Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
 matters: it makes one frame exactly one physics tick, so the frame numbers in a

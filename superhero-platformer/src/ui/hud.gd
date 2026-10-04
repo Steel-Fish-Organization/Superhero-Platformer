@@ -26,6 +26,7 @@ var _lost := 0
 var _alert := 0
 var _max_alert := 3
 var _letters: Array[String] = []
+var _upgrades: Array[String] = []
 var _banner := ""
 var _banner_timer := 0.0
 
@@ -38,6 +39,7 @@ func _ready() -> void:
 	# the scene order.
 	_hook_player.call_deferred()
 	_hook_rescue.call_deferred()
+	_hook_state.call_deferred()
 
 
 func _process(delta: float) -> void:
@@ -46,6 +48,35 @@ func _process(delta: float) -> void:
 	_banner_timer -= delta
 	if _banner_timer <= 0.0:
 		_banner = ""
+	_canvas.queue_redraw()
+
+
+func _hook_state() -> void:
+	var state := get_node_or_null(^"/root/GameState")
+	if state == null:
+		return
+	state.upgrade_unlocked.connect(_on_upgrade_unlocked)
+	state.progress_reset.connect(_on_progress_reset)
+	_refresh_upgrades(state)
+
+
+func _on_upgrade_unlocked(upgrade: Upgrade) -> void:
+	_banner = "%s EARNED" % upgrade.display_name.to_upper()
+	_banner_timer = LETTER_BANNER_TIME
+	_refresh_upgrades(get_node_or_null(^"/root/GameState"))
+
+
+func _on_progress_reset() -> void:
+	_banner = ""
+	_refresh_upgrades(get_node_or_null(^"/root/GameState"))
+
+
+func _refresh_upgrades(state: Node) -> void:
+	_upgrades.clear()
+	if state:
+		for upgrade in state.unlocked_upgrades():
+			_upgrades.append(upgrade.display_name)
+		_letters = state.letters
 	_canvas.queue_redraw()
 
 
@@ -109,6 +140,7 @@ func _draw_hud() -> void:
 		_canvas.draw_rect(Rect2(Vector2(BAR_POS.x, y), Vector2(BAR_WIDTH, UNIT_HEIGHT)), col, true)
 
 	_draw_rescue()
+	_draw_upgrades()
 
 
 ## Rescue count, the letters found so far, and how far the villain's plan has
@@ -137,3 +169,12 @@ func _draw_rescue() -> void:
 	if _banner != "":
 		_canvas.draw_string(font, Vector2(RESCUE_POS.x - 220.0, 20.0), _banner,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 8, SAVED_COLOUR)
+
+
+## What you've earned so far, bottom-left. A prototype readout -- a real one
+## would use icons.
+func _draw_upgrades() -> void:
+	var font := ThemeDB.fallback_font
+	for i in _upgrades.size():
+		_canvas.draw_string(font, Vector2(10.0, 196.0 + float(i) * 9.0), _upgrades[i],
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 7, LIGHT)

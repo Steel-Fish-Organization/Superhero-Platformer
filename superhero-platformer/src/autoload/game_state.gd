@@ -11,6 +11,8 @@ extends Node
 signal rescues_changed(stage_id: StringName)
 signal upgrade_unlocked(upgrade: Upgrade)
 signal word_completed(word: String)
+## Progress was wiped -- anything holding earned state should rebuild from here.
+signal progress_reset
 
 const DEFAULT_SAVE_PATH := "user://progress.json"
 const SAVE_VERSION := 1
@@ -37,6 +39,31 @@ var library: Dictionary = {}
 func _ready() -> void:
 	_load_library()
 	load_game()
+
+
+## Dev keys, debug builds only, so they can't reach a player:
+##   F1  grant every upgrade        F2  wipe progress
+##   F3  save now                   F4  list what you have in the console
+func _unhandled_input(event: InputEvent) -> void:
+	if not OS.is_debug_build() or not (event is InputEventKey) or not event.is_pressed() or event.is_echo():
+		return
+	match (event as InputEventKey).keycode:
+		KEY_F1:
+			grant_all()
+			print("[GameState] granted every upgrade: ", unlocked)
+		KEY_F2:
+			reset(true)
+			print("[GameState] progress wiped")
+		KEY_F3:
+			print("[GameState] saved: ", save_game(), " -> ", save_path)
+		KEY_F4:
+			print("[GameState] upgrades=", unlocked, " letters=", word_progress(), " stages=", stages)
+
+
+## Every upgrade on disk at once, for testing.
+func grant_all() -> void:
+	for id in library:
+		unlock(library[id])
 
 
 func _load_library() -> void:
@@ -186,3 +213,4 @@ func reset(erase_file := false) -> void:
 	unlocked.clear()
 	if erase_file and FileAccess.file_exists(save_path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	progress_reset.emit()

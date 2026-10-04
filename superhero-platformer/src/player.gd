@@ -67,6 +67,20 @@ signal health_changed(current: int, maximum: int)
 ## Jumping off a ladder uses this share of a normal jump.
 @export var ladder_jump_scale := 0.85
 
+@export_group("Earned abilities")
+## These do nothing until an Upgrade grants the matching ability -- see
+## src/rescue/upgrades/. The numbers are here so they stay tunable either way.
+## The mid-air jump, usually a little weaker than the one off the ground.
+@export var double_jump_velocity := -270.0
+## Jumps allowed in the air once "double_jump" is earned.
+@export var air_jumps := 1
+## Air dash: a flat burst forward, on the slide button, once per time airborne.
+@export var air_dash_speed := 220.0
+@export var air_dash_time := 0.18
+## What jumping off a hook or ledge is multiplied by with "hook_boost".
+@export var hook_boost_jump := 1.2
+@export var hook_boost_speed := 1.6
+
 @export_group("Hanging")
 ## Jump up into the underside of a one-way platform, or touch a hook from any
 ## angle, and the hero latches on -- Darkwing Duck style. Hanging you can shoot
@@ -133,6 +147,7 @@ var sliding := false
 var crouching := false
 var climbing := false
 var hanging := false
+var dashing := false
 var aim_mode := AimMode.STRAIGHT
 ## Unit vector shots are fired along.
 var aim_dir := Vector2.RIGHT
@@ -176,6 +191,12 @@ var _mouse_travel := 0.0
 ## Whatever an upgrade touches is remembered here first, so applying the set
 ## again never compounds.
 var _base_properties: Dictionary = {}
+## Abilities granted by the upgrades earned so far.
+var _abilities: Array[StringName] = []
+var _air_jumps_used := 0
+var _air_dash_used := false
+var _dash_timer := 0.0
+var _dash_dir := 1
 var _was_on_floor := false
 var _floor_state_initialized := false
 
@@ -202,6 +223,7 @@ func _ready() -> void:
 	var state := get_node_or_null(^"/root/GameState")
 	if state:
 		state.upgrade_unlocked.connect(_on_upgrade_unlocked)
+		state.progress_reset.connect(apply_upgrades)
 		apply_upgrades()
 
 
@@ -248,6 +270,8 @@ func _physics_process(delta: float) -> void:
 		_climb(delta)
 	elif sliding:
 		_slide(delta)
+	elif dashing:
+		_dash(delta)
 	elif crouching:
 		_crouch(delta)
 	else:
@@ -288,8 +312,15 @@ func _walk(delta: float) -> void:
 	if _slide_buffer > 0.0 and is_on_floor() and _slide_cooldown <= 0.0:
 		_start_slide(input_x)
 		return
+	# Off the ground, that same button is the air dash, once you've earned it.
+	if _slide_buffer > 0.0 and not is_on_floor() and not _air_dash_used and has_ability(&"air_dash"):
+		_start_dash(input_x)
+		return
+
 	if _jump_buffer > 0.0 and _coyote > 0.0:
 		_jump()
+	elif _jump_buffer > 0.0 and not is_on_floor() and _air_jumps_used < _air_jumps_allowed():
+		_air_jump()
 
 	# Variable jump height: letting go mid-rise trims what's left of it. Applied
 	# once per jump -- doing it every frame would compound and kill the rise
@@ -324,6 +355,68 @@ func _jump() -> void:
 	_coyote = 0.0
 	_jump_cut_used = false
 	$SFX/SndJump.play()
+
+
+# ---------------------------------------------------------------------------
+# earned abilities
+# ---------------------------------------------------------------------------
+func has_ability(id: StringName) -> bool:
+	return _abilities.has(id)
+
+
+func _air_jumps_allowed() -> int:
+	return air_jumps if has_ability(&"double_jump") else 0
+
+
+## Anything the ground gives back: both air moves recharge on landing, on a
+## ladder, and on a hook or ledge.
+func _reset_air_moves() -> void:
+	_air_jumps_used = 0
+	_air_dash_used = false
+
+
+func _air_jump() -> void:
+	_air_jumps_used += 1
+	velocity.y = double_jump_velocity
+	_jump_buffer = 0.0
+	_slide_buffer = 0.0
+	_jump_cut_used = false
+
+
+func _start_dash(dir_x: float) -> void:
+	dashing = true
+	_air_dash_used = true
+	_dash_dir = int(dir_x) if dir_x != 0.0 else facing
+	facing = _dash_dir
+	_dash_timer = air_dash_time
+	_slide_buffer = 0.0
+	velocity = Vector2(air_dash_speed * _dash_dir, 0.0)
+
+
+## A flat burst forward with gravity switched off, like Mega Man X's air dash.
+## It ends on the timer, a wall, or the ground -- and you can jump or grab out
+## of it, which is most of what makes dashing feel good.
+func _dash(delta: float) -> void:
+	_dash_timer -= delta
+	velocity = Vector2(air_dash_speed * _dash_dir, 0.0)
+	move_and_slide()
+
+	if hang_enabled and _try_hang(delta):
+		dashing = false
+		return
+
+	if _jump_buffer > 0.0 and (is_on_floor() or _air_jumps_used < _air_jumps_allowed()):
+		dashing = false
+		if is_on_floor():
+			_jump()
+		else:
+			_air_jump()
+		return
+
+	if _dash_timer <= 0.0 or is_on_wall() or is_on_floor():
+		dashing = false
+		# Keep running speed on the way out rather than stopping dead.
+		velocity.x = run_speed * _dash_dir
 
 
 func _enter_crouch() -> void:
@@ -457,6 +550,8 @@ func _try_grab_ladder() -> bool:
 		return false
 
 	climbing = true
+	dashing = false
+	_reset_air_moves()
 	velocity = Vector2.ZERO
 	return true
 
@@ -534,6 +629,9 @@ func _grab(anchor: Vector2, surface: float, hook: Area2D) -> void:
 	sliding = false
 	crouching = false
 	climbing = false
+	dashing = false
+	# Grabbing hold counts as a fresh start in the air.
+	_reset_air_moves()
 	_hang_anchor = anchor
 	_hang_surface = surface
 	_hang_hook = hook
@@ -586,8 +684,13 @@ func _release(with_jump: bool) -> void:
 	_hang_surface = INF
 	_jump_buffer = 0.0
 	_jump_cut_used = false
-	velocity.x = _input_x() * run_speed
-	velocity.y = jump_velocity * hang_jump_scale if with_jump else 0.0
+	_reset_air_moves()
+	# "hook_boost" turns letting go into a launch.
+	var boosted := has_ability(&"hook_boost")
+	var speed := run_speed * (hook_boost_speed if boosted else 1.0)
+	var lift := jump_velocity * hang_jump_scale * (hook_boost_jump if boosted else 1.0)
+	velocity.x = _input_x() * speed
+	velocity.y = lift if with_jump else 0.0
 
 
 ## Pulls up onto the platform being hung from, and stands on it.
@@ -760,6 +863,7 @@ func take_damage(amount: int, from: Node = null) -> bool:
 	_hurt_timer = hurt_time
 	_invuln = invuln_time
 	climbing = false
+	dashing = false
 	# Getting hit shakes you off a hook or platform.
 	if hanging:
 		_release(false)
@@ -833,8 +937,12 @@ func apply_upgrades() -> void:
 	var was_full := health >= max_health
 	for property in _base_properties:
 		set(property, _base_properties[property])
+	_abilities.clear()
 
 	for upgrade in state.unlocked_upgrades():
+		for ability in upgrade.abilities:
+			if not _abilities.has(ability):
+				_abilities.append(ability)
 		for property in upgrade.player_properties:
 			if not _base_properties.has(property):
 				if not (property in self):
@@ -862,7 +970,9 @@ func respawn() -> void:
 	crouching = false
 	climbing = false
 	hanging = false
+	dashing = false
 	frozen = false
+	_reset_air_moves()
 	_hang_hook = null
 	_hang_surface = INF
 	_jump_buffer = 0.0
@@ -891,6 +1001,7 @@ func _tick_timers(delta: float) -> void:
 	var grounded := is_on_floor() and not climbing and not hanging
 	if grounded:
 		_coyote = coyote_time
+		_reset_air_moves()
 	else:
 		_coyote = maxf(0.0, _coyote - delta)
 
@@ -940,8 +1051,9 @@ func _set_shape(is_sliding: bool) -> void:
 
 
 func _update_sprite() -> void:
-	# Crouching shares the slide's low frame for now -- there's no crouch art yet.
-	if sliding or crouching:
+	# Crouching and dashing share the slide's low frame for now -- there's no
+	# crouch or dash art yet.
+	if sliding or crouching or dashing:
 		anim_spr.animation = "slide"
 	elif velocity.y < 0:
 		anim_spr.animation = "jump"

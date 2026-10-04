@@ -98,8 +98,12 @@ func _room_a() -> void:
 
 	# slide tunnel: a 2-tile opening, so only a slide gets through
 	_slab(60, 68, LOW_FLOOR - 9, LOW_FLOOR - 3)
-	# someone trapped inside it: slide in, crouch, and interact
-	_civilian(64, LOW_FLOOR)
+	# someone trapped inside it: slide in, crouch, and interact. He teaches you
+	# the air dash, which is the only way to reach some of what follows.
+	_civilian(64, LOW_FLOOR, {
+		&"display_name": "Dex",
+		&"upgrade": load("res://src/rescue/upgrades/air_dash.tres"),
+	})
 
 	# one-way platforms
 	_oneway(74, 79, LOW_FLOOR - 4)
@@ -190,8 +194,13 @@ func _room_e() -> void:
 	# a turret on a pedestal at the far end
 	_slab(206, 209, LOW_FLOOR - 3, LOW_FLOOR - 1)
 	_spawn("res://src/enemies/turret.tscn", "Turret", 207, LOW_FLOOR - 3, {&"x_offset": 4.0})
-	# someone in real danger past the enemies: fight through before the clock runs out
-	_civilian(212, LOW_FLOOR, {&"danger_time": 14.0})
+	# someone in real danger past the enemies: fight through before the clock
+	# runs out. The one upgrade you can lose by being slow.
+	_civilian(212, LOW_FLOOR, {
+		&"display_name": "Juno",
+		&"danger_time": 14.0,
+		&"upgrade": load("res://src/rescue/upgrades/double_jump.tres"),
+	})
 
 
 # ---------------------------------------------------------------------------
@@ -312,7 +321,11 @@ func _rescue_nodes() -> void:
 	tracker.name = "RescueTracker"
 	tracker.set_script(load("res://src/rescue/rescue_tracker.gd"))
 	tracker.set(&"stage_id", &"greybox")
-	tracker.set(&"clean_sweep_reward", load("res://src/rescue/upgrades/field_medic.tres"))
+	var sweep: Array[Upgrade] = [
+		load("res://src/rescue/upgrades/field_medic.tres"),
+		load("res://src/rescue/upgrades/hook_boost.tres"),
+	]
+	tracker.set(&"clean_sweep_rewards", sweep)
 	level_root.add_child(tracker)
 
 	var alert := Node.new()

@@ -113,8 +113,17 @@ func place(pos: Vector2) -> void:
 	player.crouching = false
 	player.hanging = false
 	player.climbing = false
+	player.dashing = false
 	player._regrab = 0.0
 	player._last_grab = 0.0
+	# Queued presses shouldn't survive a teleport, or an earlier case's buffered
+	# slide fires the moment the next one puts the hero back on the ground.
+	player._jump_buffer = 0.0
+	player._slide_buffer = 0.0
+	# A teleport is a fresh start in the air too: without this, a suite that
+	# never lets the hero land keeps an earlier case's spent dash or double jump.
+	player._air_jumps_used = 0
+	player._air_dash_used = false
 	# A velocity a suite sets by hand isn't a held jump, so the variable-height
 	# jump cut would halve it on the first frame. Mark the cut as already spent.
 	player._jump_cut_used = true

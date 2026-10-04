@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/rescue/upgrade.gd" id="1_u"]
+
+[resource]
+script = ExtResource("1_u")
+id = &"double_jump"
+display_name = "Second Wind"
+blurb = "Juno got you off the ground once. Now you can do it twice."
+player_properties = {}
+abilities = Array[StringName]([&"double_jump"])
