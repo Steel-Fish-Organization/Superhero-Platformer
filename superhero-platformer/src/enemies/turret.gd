@@ -35,7 +35,7 @@ func _behaviour(delta: float) -> void:
 		Phase.CLOSED:
 			_set_frame(0)
 			if _timer <= 0.0 and _player_near():
-				_enter(Phase.OPENING, open_time)
+				_enter(Phase.OPENING, open_time * alert_scale())
 		Phase.OPENING:
 			_set_frame(1)
 			invulnerable = false
@@ -55,7 +55,7 @@ func _behaviour(delta: float) -> void:
 			_set_frame(1)
 			if _timer <= 0.0:
 				invulnerable = true
-				_enter(Phase.CLOSED, closed_time)
+				_enter(Phase.CLOSED, closed_time * alert_scale())
 
 
 func _enter(next: Phase, time: float) -> void:

@@ -68,6 +68,7 @@ func _initialize() -> void:
 
 	_ladders_node()
 	_rooms_node()
+	_rescue_nodes()
 	var player := _player(3, LOW_FLOOR)
 	_camera(player)
 	_hud()
@@ -97,6 +98,8 @@ func _room_a() -> void:
 
 	# slide tunnel: a 2-tile opening, so only a slide gets through
 	_slab(60, 68, LOW_FLOOR - 9, LOW_FLOOR - 3)
+	# someone trapped inside it: slide in, crouch, and interact
+	_civilian(64, LOW_FLOOR)
 
 	# one-way platforms
 	_oneway(74, 79, LOW_FLOOR - 4)
@@ -140,6 +143,8 @@ func _room_c() -> void:
 		_hook(112 + i * 6, HIGH_FLOOR - 11)
 	_drone(145, HIGH_FLOOR - 12, 24.0)
 	_checkpoint(116, HIGH_FLOOR)
+	# the stage's named survivor, up on the high one-way platform
+	_civilian(152, HIGH_FLOOR - 9, {&"display_name": "Ada", &"letter": "G"})
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +185,8 @@ func _room_e() -> void:
 	# a turret on a pedestal at the far end
 	_slab(206, 209, LOW_FLOOR - 3, LOW_FLOOR - 1)
 	_spawn("res://src/enemies/turret.tscn", "Turret", 207, LOW_FLOOR - 3, {&"x_offset": 4.0})
+	# someone in real danger past the enemies: fight through before the clock runs out
+	_civilian(212, LOW_FLOOR, {&"danger_time": 14.0})
 
 
 # ---------------------------------------------------------------------------
@@ -285,6 +292,26 @@ func _checkpoint(x: int, y: int) -> void:
 ## A hook to hang from, centred on tile column x at the top edge of row y.
 func _hook(x: int, y: int) -> void:
 	_spawn("res://src/hook.tscn", "Hook", x, y)
+
+
+## Someone to rescue, standing on row y. `props` sets display_name, letter or
+## danger_time -- see src/rescue/civilian.gd.
+func _civilian(x: int, y: int, props := {}) -> void:
+	_spawn("res://src/rescue/civilian.tscn", "Civilian", x, y, props)
+
+
+## The rescue bookkeeping every level needs: who's been saved, and how far the
+## villain's plan has got while you were saving them.
+func _rescue_nodes() -> void:
+	var tracker := Node.new()
+	tracker.name = "RescueTracker"
+	tracker.set_script(load("res://src/rescue/rescue_tracker.gd"))
+	level_root.add_child(tracker)
+
+	var alert := Node.new()
+	alert.name = "Alert"
+	alert.set_script(load("res://src/rescue/alert.gd"))
+	level_root.add_child(alert)
 
 
 func _hud() -> void:

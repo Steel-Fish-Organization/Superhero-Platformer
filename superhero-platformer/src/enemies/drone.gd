@@ -45,7 +45,7 @@ func _behaviour(delta: float) -> void:
 	velocity.y = (want_y - global_position.y) * 6.0
 
 	if _fire_timer <= 0.0 and _in_range():
-		_fire_timer = fire_interval
+		_fire_timer = fire_interval * alert_scale()
 		var dir := direction_to_player() if aim_at_player else Vector2(facing, 0.0)
 		shoot(projectile, dir, Vector2.ZERO, shot_speed)
 

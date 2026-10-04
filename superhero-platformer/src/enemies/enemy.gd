@@ -163,6 +163,14 @@ func at_ledge(probe_ahead := 8.0, probe_down := 12.0) -> bool:
 	return get_world_2d().direct_space_state.intersect_ray(query).is_empty()
 
 
+## Multiplier for this enemy's timers, from the level's alert level: the longer
+## the hero spends rescuing people, the less patient the opposition gets. 1.0
+## when the level has no Alert node.
+func alert_scale() -> float:
+	var alert := get_tree().get_first_node_in_group(&"alert")
+	return alert.call(&"fire_scale") if alert else 1.0
+
+
 ## Fires a projectile scene (any scene with the Projectile script) from here.
 func shoot(scene: PackedScene, dir: Vector2, offset := Vector2.ZERO, speed := -1.0) -> Node:
 	if scene == null:

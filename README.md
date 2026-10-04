@@ -16,6 +16,7 @@ Two control layouts, both live at once:
 | hang: let go / drop / climb up | **X** / **↓** / **↑** | **K** / **S** / **W** |
 | slide (or crouch + jump) | **C** | **L** |
 | aim | mouse | mouse |
+| interact / rescue | **E** | **E** |
 | next weapon | **Q** | **Q** |
 | respawn | **R** | **R** |
 
@@ -28,6 +29,7 @@ Gamepad, twin-stick style:
 | jump | A or **LT** |
 | fire | X or **RT** |
 | slide | B or **LB** |
+| interact / rescue | Y |
 | next weapon | RB |
 
 The triggers and LB are there so your right thumb can stay on the aim stick.
@@ -181,19 +183,21 @@ Five rooms, laid out to exercise both transition directions:
 **Room A** — flat run, 4-tile gap, jump-height ruler (pillars of 2/4/6/8/10
 tiles; it deliberately runs past what the jump reaches so it stays a measuring
 stick while you retune — right now you clear 8 but not 10), a 2-tile slide
-tunnel, one-way platforms to hang under, a hook over the gap, and a ladder that
-ends in mid-air.
+tunnel with someone trapped inside it (slide in, crouch, interact), one-way
+platforms to hang under, a hook over the gap, and a ladder that ends in mid-air.
 
 **Room B** — the foot of a long ladder that climbs into room C.
 
 **Room C** — the top of that ladder, coming up through a hole in the floor, plus
-three hooks in a row to jump between.
+three hooks in a row to jump between. **Ada**, the named survivor, is up on the
+high platform with the stage's letter.
 
 **Room D** — shooting gallery, six targets that come back after 2 seconds.
 
 **Room E** — one of each enemy type: two walkers (one pacing a raised block),
 a hopper, a turret on a pedestal, and two flyers (weaving and swooping). Two
-hooks hang above it, to perch on and shoot down from.
+hooks hang above it, to perch on and shoot down from. Past them all, someone on
+a **14-second danger clock** — the one rescue you can actually fail.
 
 Checkpoints (small flag posts) sit at the entrances to rooms B, C and E.
 
@@ -248,6 +252,36 @@ haven't reached one. Checkpoints only move you forward. Drop `src/checkpoint.tsc
 into a level with its origin on the floor; turn off `show_flag` for an invisible
 one.
 
+## Rescuing people
+
+Civilians (`src/rescue/civilian.tscn`) are scattered through a level. Stand next
+to one and press **interact** (E, or gamepad Y) and they run clear. The HUD keeps
+the count on the right.
+
+| On a Civilian | |
+| --- | --- |
+| `display_name` | a **named survivor** — the one person in a stage worth remembering. Drawn with a bright collar |
+| `letter` | the stage's letter, handed over when they're rescued. One per stage spells a word |
+| `danger_time` | seconds until they're lost, counting from when they first come **on screen**. 0 = in no immediate danger |
+
+The clock only starts once you can see them, so you're never punished for a room
+you haven't reached. A civilian you don't reach in time is **lost** for that
+attempt — replay the stage to try again.
+
+`RescueTracker` (one per level) counts everyone and collects the letters;
+`src/rescue/alert.gd` is the cost of stopping to help.
+
+### The alert level
+
+The **alert level** climbs the longer you spend in a stage (`seconds_per_level`,
+45s by default), up to `max_level`. Enemies get quicker with it — the drone
+fires sooner, the turret opens sooner — because they ask the level for
+`alert_scale()` rather than being told. Eventually a boss should gain a phase
+for each level. So you *can* save everyone; you just meet the villain at full
+strength. A level with no `Alert` node behaves as if it were always 0.
+
+The HUD shows it as pips under the rescue count.
+
 ### Enemies
 
 Every enemy extends `src/enemies/enemy.gd`, which handles health, the white hit
@@ -277,6 +311,16 @@ releasing after a threshold fires that tier too.
 | full | 1.15s | 6 | pierces one target |
 
 The hero flashes brighter as each tier is reached.
+
+## Tests
+
+Headless checks that drive the real game — no window, no hands:
+
+```bash
+godot --headless --fixed-fps 60 --path . --script tools/tests/test_rescue.gd
+```
+
+Each prints PASS/FAIL per check and a failure count at the end.
 
 ## Regenerating
 
