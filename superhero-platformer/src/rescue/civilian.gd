@@ -28,6 +28,8 @@ const PLAYER_LAYER := 2
 		queue_redraw()
 ## The stage letter this person carries, if any. One per stage spells the word.
 @export var letter := ""
+## What they give you for saving them. Usually only named survivors have one.
+@export var upgrade: Upgrade
 
 @export_group("Danger")
 ## Seconds from first being seen until they're lost. 0 = in no immediate danger.

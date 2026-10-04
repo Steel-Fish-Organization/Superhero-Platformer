@@ -268,13 +268,35 @@ The clock only starts once you can see them, so you're never punished for a room
 you haven't reached. A civilian you don't reach in time is **lost** for that
 attempt — replay the stage to try again.
 
-`RescueTracker` (one per level) counts everyone and collects the letters;
-`src/rescue/alert.gd` is the cost of stopping to help.
+`RescueTracker` (one per level) counts everyone, collects the letters and writes
+the stage's record to `GameState`.
+
+### Upgrades, letters and what carries over
+
+Rescues are what you upgrade with. An **Upgrade** is a `.tres` in
+`src/rescue/upgrades/` listing properties to set on the hero — the same
+drag-and-drop idea as the weapons, and nothing in the code knows what any
+particular one does:
+
+| Upgrade | Earned by | Does |
+| --- | --- | --- |
+| **Charge Coil** | rescuing Ada | buster charges 1.6× faster |
+| **Field Medic Training** | getting *everyone* out of a stage alive | +4 max health |
+| **Guardian Protocol** | collecting every letter | shorter stun, longer i-frames |
+
+The letters spell **GUARDIAN**, one per stage. `GameState` (autoloaded) keeps
+the letters, the upgrades and a per-stage record of who you saved, and writes
+them to `user://progress.json` as plain JSON. Replaying a stage can only improve
+its record, so going back for someone you missed is never a risk.
+
+Upgrades are applied over the values in `player.tscn` and rebuilt from those each
+time, so they can't stack on themselves. `src/rescue/alert.gd` is the cost of
+stopping to help.
 
 ### The alert level
 
 The **alert level** climbs the longer you spend in a stage (`seconds_per_level`,
-45s by default), up to `max_level`. Enemies get quicker with it — the drone
+60s by default), up to `max_level`. Enemies get quicker with it — the drone
 fires sooner, the turret opens sooner — because they ask the level for
 `alert_scale()` rather than being told. Eventually a boss should gain a phase
 for each level. So you *can* save everyone; you just meet the villain at full
@@ -314,13 +336,28 @@ The hero flashes brighter as each tier is reached.
 
 ## Tests
 
-Headless checks that drive the real game — no window, no hands:
+Headless checks that drive the real game — real input, real physics, no window:
 
 ```bash
-godot --headless --fixed-fps 60 --path . --script tools/tests/test_rescue.gd
+tools/tests/run_all.sh /path/to/godot      # everything, one line per suite
+godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 ```
 
-Each prints PASS/FAIL per check and a failure count at the end.
+| Suite | Covers |
+| --- | --- |
+| `test_movement` | stick handling, crouch, slide length, the tunnel, chained slides |
+| `test_aiming` | straight/stick/mouse aim, facing, where shots go |
+| `test_hanging` | platform and hook grabs, shooting while hung, letting go |
+| `test_combat` | charge tiers, one-way shots, contact damage, armour, deaths |
+| `test_camera` | room scrolls, respawn mid-scroll, up-needs-a-ladder, checkpoints |
+| `test_rescue` | rescuing, danger clocks, losing someone, the alert level |
+| `test_progress` | the save file, letters, upgrades reaching the hero |
+
+Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
+matters: it makes one frame exactly one physics tick, so the frame numbers in a
+suite mean the same thing on every machine. Suites share `harness.gd`, which
+loads the level and fakes input — write new ones by extending `GameTest` and
+filling in `step(frame)`.
 
 ## Regenerating
 

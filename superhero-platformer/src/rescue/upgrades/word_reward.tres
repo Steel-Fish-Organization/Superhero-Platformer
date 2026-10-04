@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Upgrade" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/rescue/upgrade.gd" id="1_u"]
+
+[resource]
+script = ExtResource("1_u")
+id = &"word_reward"
+display_name = "Guardian Protocol"
+blurb = "Every letter found. You get back up faster than you used to."
+player_properties = {
+"invuln_time": 1.8,
+"hurt_time": 0.25
+}

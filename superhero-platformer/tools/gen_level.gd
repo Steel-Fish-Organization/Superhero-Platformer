@@ -143,8 +143,13 @@ func _room_c() -> void:
 		_hook(112 + i * 6, HIGH_FLOOR - 11)
 	_drone(145, HIGH_FLOOR - 12, 24.0)
 	_checkpoint(116, HIGH_FLOOR)
-	# the stage's named survivor, up on the high one-way platform
-	_civilian(152, HIGH_FLOOR - 9, {&"display_name": "Ada", &"letter": "G"})
+	# the stage's named survivor, up on the high one-way platform. She rewires
+	# your buster for you.
+	_civilian(152, HIGH_FLOOR - 9, {
+		&"display_name": "Ada",
+		&"letter": "G",
+		&"upgrade": load("res://src/rescue/upgrades/charge_coil.tres"),
+	})
 
 
 # ---------------------------------------------------------------------------
@@ -306,6 +311,8 @@ func _rescue_nodes() -> void:
 	var tracker := Node.new()
 	tracker.name = "RescueTracker"
 	tracker.set_script(load("res://src/rescue/rescue_tracker.gd"))
+	tracker.set(&"stage_id", &"greybox")
+	tracker.set(&"clean_sweep_reward", load("res://src/rescue/upgrades/field_medic.tres"))
 	level_root.add_child(tracker)
 
 	var alert := Node.new()

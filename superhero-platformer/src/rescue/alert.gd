@@ -11,7 +11,7 @@ extends Node
 signal level_changed(level: int)
 
 ## Seconds at each level before the next one starts.
-@export var seconds_per_level := 45.0
+@export var seconds_per_level := 60.0
 @export var max_level := 3
 ## How much faster enemies act per level. 0.3 = 30% quicker at level 1.
 @export var urgency_per_level := 0.3

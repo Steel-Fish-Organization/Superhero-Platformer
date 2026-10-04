@@ -99,6 +99,9 @@ signal health_changed(current: int, maximum: int)
 ## resource file, so swapping the gun out is a drag-and-drop.
 @export var weapons: Array[Weapon] = []
 
+## How fast the buster charges. Upgrades raise it; 2.0 charges twice as fast.
+@export var charge_rate := 1.0
+
 @export_group("Health")
 @export var max_health := 28
 ## Seconds of stun after a hit.
@@ -170,6 +173,9 @@ var _shots: Array[Node] = []
 ## shoulder height, its x how far out along the aim shots appear.
 var _muzzle_offset := Vector2.ZERO
 var _mouse_travel := 0.0
+## Whatever an upgrade touches is remembered here first, so applying the set
+## again never compounds.
+var _base_properties: Dictionary = {}
 var _was_on_floor := false
 var _floor_state_initialized := false
 
@@ -191,6 +197,12 @@ func _ready() -> void:
 	$LadderProbe.area_exited.connect(func(a: Area2D) -> void:
 		if _ladder == a:
 			_ladder = null)
+
+	# Whatever you earned by saving people, you keep.
+	var state := get_node_or_null(^"/root/GameState")
+	if state:
+		state.upgrade_unlocked.connect(_on_upgrade_unlocked)
+		apply_upgrades()
 
 
 func _exit_tree() -> void:
@@ -628,7 +640,7 @@ func _handle_firing(delta: float) -> void:
 			_charging = true
 			_charge = 0.0
 	elif _charging and Input.is_action_pressed(&"fire"):
-		_charge += delta
+		_charge += delta * charge_rate
 		if $SFX/SndCharge.playing == false and _charge > 0.5:
 			$SFX/SndCharge.play()
 	elif _charging:
@@ -806,6 +818,39 @@ func _check_landing() -> void:
 ## Checkpoints call this. Death, pits and R all bring you back here from now on.
 func set_checkpoint(point: Vector2) -> void:
 	_spawn_point = point
+
+
+# ---------------------------------------------------------------------------
+# upgrades
+# ---------------------------------------------------------------------------
+## Writes every earned upgrade onto the hero, starting from the values the scene
+## was saved with. Rebuilding from those each time means upgrades can't stack up
+## on top of themselves when this runs twice.
+func apply_upgrades() -> void:
+	var state := get_node_or_null(^"/root/GameState")
+	if state == null:
+		return
+	var was_full := health >= max_health
+	for property in _base_properties:
+		set(property, _base_properties[property])
+
+	for upgrade in state.unlocked_upgrades():
+		for property in upgrade.player_properties:
+			if not _base_properties.has(property):
+				if not (property in self):
+					push_warning("Upgrade %s sets unknown property '%s'." % [upgrade.id, property])
+					continue
+				# Remember what the scene shipped with, to rebuild from later.
+				_base_properties[property] = get(property)
+			set(property, upgrade.player_properties[property])
+
+	# A bigger health bar is no use if it arrives empty.
+	health = max_health if was_full else mini(health, max_health)
+	health_changed.emit(health, max_health)
+
+
+func _on_upgrade_unlocked(_upgrade: Upgrade) -> void:
+	apply_upgrades()
 
 
 func respawn() -> void:
