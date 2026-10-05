@@ -50,9 +50,9 @@ func restage() -> void:
 
 
 func step(f: int) -> bool:
-	var dex: Node2D = node("Civilian1")
-	var ada: Node2D = node("Civilian2")
-	var juno: Node2D = node("Civilian3")
+	var dex: Node2D = civilian("Dex")
+	var ada: Node2D = civilian("Ada")
+	var juno: Node2D = civilian("Juno")
 
 	match f:
 		2:

@@ -16,6 +16,9 @@ signal level_changed(level: int)
 ## How much faster enemies act per level. 0.3 = 30% quicker at level 1.
 @export var urgency_per_level := 0.3
 @export var running := true
+## Arriving on a dark run means the villain's plan is already further along:
+## the stage opens at this level instead of 0.
+@export var dark_start_level := 1
 
 var level := 0
 var elapsed := 0.0
@@ -23,6 +26,10 @@ var elapsed := 0.0
 
 func _ready() -> void:
 	add_to_group(&"alert")
+	var state := get_node_or_null(^"/root/GameState")
+	if state and state.arrived_as == "D" and dark_start_level > 0:
+		level = mini(dark_start_level, max_level)
+		elapsed = float(level) * seconds_per_level
 
 
 func _process(delta: float) -> void:

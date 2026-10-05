@@ -3,10 +3,10 @@
 How many people you get out of a stage decides where you go next: hero, neutral
 or dark, worked out at the exit, Shadow the Hedgehog style.
 
-**Status:** M1 and M2 are built — the outcome rule, the exit, the objectives
-panel, the stage graph and the router. M3 onward is still design. See
-[§10](#10-where-this-is-up-to) for where the work stands and what to pick up
-next.
+**Status:** M1, M2 and M3 are built — the outcome rule, the exit, the objectives
+panel, the stage graph, the router and per-path populations. What's left is
+endings, content and the two jobs in [§11](#11-everything-still-to-do), which
+also lists every stage and system still outstanding.
 
 This file is the canonical copy. There's a formatted version at
 <https://claude.ai/artifact/GYPDRgz3g2tnVYUiH7xNNa> that will drift; trust this one.
@@ -225,9 +225,20 @@ Routing proven before any content exists.
 - `tools/tests/test_graph.gd` walks the graph; `tools/tests/smoke_route.gd` walks
   it for real, loading each scene
 
-### M3 — Populations
+### M3 — Populations — **done**
 
 One stage, three ways to play it, chosen by the path you walked in on.
+
+- `src/level/population.gd`: a group of nodes that only exists on some arriving
+  paths. It culls in `_enter_tree`, before its children ever enter the tree, so
+  they never join the `civilians` or `enemies` groups and never reach the
+  tracker's count
+- `GameState.arrived_as`: the outcome that brought you here, saved with the rest
+- The greybox varies: a hero arrival finds Wen in the gallery, a dark arrival
+  finds Juno already gone and four more enemies in the way
+- `Alert.dark_start_level`: a dark arrival opens at alert 1
+- Dev keys F6 / F7 / F8 replay the current stage as a hero / neutral / dark arrival
+- `tools/tests/test_populations.gd`
 
 ### M4 — Endings
 
@@ -317,21 +328,91 @@ stages. Rearranging it means editing one `.tres`.
 - **A result screen.** The outcome shows as a HUD banner for two seconds, then
   the next stage loads.
 
-### Picking up M3
+### Built in M3
 
-1. **Read the arriving path.** On load, a level asks `GameState` for the last
-   outcome and enables the matching population group.
-2. **`Pop_H` / `Pop_N` / `Pop_D` node groups** in a level, with everything else
-   shared. Start in the greybox, since it has real content to vary.
-3. **Alert starts at 1 on a dark arrival** — one line, and it changes how the
-   stage feels immediately.
-4. **A test**: load a stage with each arriving path, assert the enemy and
-   civilian counts differ.
+| Piece | Where |
+| --- | --- |
+| Per-path populations | `src/level/population.gd`, groups named `Pop_Hero` / `Pop_HeroNeutral` / `Pop_Dark` |
+| The arriving path | `GameState.arrived_as`, set when the previous stage was counted, saved with the run |
+| Varied greybox | `tools/gen_level.gd` — `_populations()` |
+| Varied stubs | `tools/gen_stubs.gd` — a hero arrival adds a witness, a dark one adds two walkers |
+| Alert head start | `src/rescue/alert.gd` — `dark_start_level` |
+| Dev keys | F6 / F7 / F8 reload the stage as a hero / neutral / dark arrival |
+| Tests | `tools/tests/test_populations.gd` |
 
-Before any of that, two jobs that aren't a milestone but block real content:
+The greybox, counted three ways:
 
-- **The upgrade/cache split (§4).** Civilians still carry `upgrade` and `letter`.
-  Until caches exist, upgrades can't be spread evenly across the three paths,
-  which is the balance problem in §4.
-- **The level contract (§8).** See above. Twenty levels each repeating the
-  player/camera/HUD wiring is twenty places to fix anything that changes.
+| Arriving on | Civilians | Enemies | Alert |
+| --- | --- | --- | --- |
+| nothing (played on its own) | 3 | 10 | 0 |
+| Hero | 4 (Wen is in the gallery) | 10 | 0 |
+| Neutral | 3 | 10 | 0 |
+| Dark | 2 (Juno's clock ran out before you got here) | 14 | 1 |
+
+## 11. Everything still to do
+
+### Milestones
+
+| | What | Blocked on |
+| --- | --- | --- |
+| **M4** | Endings: the path history picks one of five or six | nothing — can be built now |
+| **M5** | Content: turning 7 stubs into real stages | the two jobs below |
+
+### Two jobs before real content
+
+**The upgrade/cache split (§4).** Civilians still carry `upgrade` and `letter`;
+there's no cache scene. Until that's split, upgrades can't be spread across the
+three paths, so the hero route holds all the power and the branch isn't a real
+choice. Small now, painful once seven levels have content placed in them.
+
+**The level contract (§8).** Every level — the greybox and all seven stubs —
+embeds its own Player, camera and HUD, copied from the greybox. A `Level` root
+script with a `PlayerSpawn` marker would own that once. Twenty levels repeating
+it is twenty places to edit when any of it changes.
+
+### Stages
+
+All eight exist and route correctly. Only the greybox has content.
+
+| Stage | Act | Reached by | State |
+| --- | --- | --- | --- |
+| `greybox` (Foundry District) | opening | start of the run | real content, no boss |
+| `rooftops` | 1 | hero | stub |
+| `transit` (Midnight Transit) | 1 | neutral | stub |
+| `undercity` | 1 | dark | stub |
+| `sky_spire` (Sky Refinery) | 2 | hero-ish routes | stub |
+| `deep_channel` | 2 | mixed routes | stub |
+| `scrap_canyon` | 2 | darker routes | stub |
+| `citadel` (Citadel Core) | hub | everyone | stub, and the run ends there |
+
+Three acts of this shape is ~22 stages (§5). Acts 2 and 3 aren't in the graph
+yet: the citadel currently ends the run, and becomes the next act's opening when
+there is one.
+
+### Systems not built at all
+
+Ordered roughly by how much the design above depends on them.
+
+| System | Why it matters | Notes |
+| --- | --- | --- |
+| **Bosses** | every act needs one, and the alert level is supposed to make them harder | `reference/full-framework` has `boss.gd`, `boss_arena.gd` and a finished boss to borrow |
+| **Upgrade caches** | §4; the balance of the three paths | reference `pickup.gd` is most of one |
+| **Hazards** | the third way civilians die (§2), and level variety | reference has `hazard.gd` |
+| **Endings** | M4; what the path history is *for* | reference has `ending.gd` |
+| **Menus, pause, game over** | a game you can start and lose | reference has all three |
+| **Save slots** | one save file today, no file select | reference has `save_system.gd` with three slots |
+| **Lives and continues** | death currently just respawns you at a checkpoint | |
+| **Stage select** | branching may not want one at all — the graph decides where you go | decide before building |
+| **Enemies targeting civilians** | would turn dark from neglect into something the villain does | open question in §9 |
+| **A result screen** | the outcome is a HUD banner for two seconds | |
+| **Music** | the audio pack has four tracks sitting unused | |
+
+### Known rough edges
+
+- Killed enemies don't come back when you respawn at a checkpoint.
+- The run has no end: the citadel's successors are empty, so you stop there.
+- `path_history` grows forever; it needs clearing when a run starts (M4's job).
+- Replaying a stage re-appends to `path_history`, so the ending will read a
+  longer history than the run actually was. Same fix.
+- Nothing shows which path you arrived on while you play it — you can only tell
+  from who's there.

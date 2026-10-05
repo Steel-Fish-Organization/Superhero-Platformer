@@ -29,17 +29,26 @@ func _initialize() -> void:
 
 
 ## Stand next to someone (and bring the camera, which their danger timer needs).
-func stand_by(civilian: Node2D, offset := Vector2(-10.0, 0.0)) -> void:
-	player.global_position = civilian.global_position + offset
+## By the name they're drawn with: population groups (M3) moved several of them
+## a level deeper in the scene, so node paths no longer find them.
+func civilian(display_name: String) -> Node2D:
+	for person in get_nodes_in_group(&"civilians"):
+		if person.display_name == display_name:
+			return person
+	return null
+
+
+func stand_by(person: Node2D, offset := Vector2(-10.0, 0.0)) -> void:
+	player.global_position = person.global_position + offset
 	player.velocity = Vector2.ZERO
 	player.respawned.emit()
 
 
 func _physics_process(_d: float) -> bool:
 	f += 1
-	var tunnel: Node2D = level.get_node_or_null("Civilian1")
-	var ada: Node2D = level.get_node_or_null("Civilian2")
-	var doomed: Node2D = level.get_node_or_null("Civilian3")
+	var tunnel: Node2D = civilian("Dex")
+	var ada: Node2D = civilian("Ada")
+	var doomed: Node2D = civilian("Juno")
 
 	match f:
 		2:

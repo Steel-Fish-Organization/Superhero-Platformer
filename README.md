@@ -319,6 +319,7 @@ In debug builds only (they can't reach a player):
 | **F2** | wipe progress, on disk and in memory |
 | **F3** | save now |
 | **F4** | print what you have to the console |
+| **F6 / F7 / F8** | replay this stage as a hero / neutral / dark arrival |
 
 Earned upgrades are listed in the bottom-left of the HUD, with a banner when one
 is earned. `src/rescue/alert.gd` is the cost of
@@ -386,6 +387,7 @@ godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 | `test_abilities` | air dash, double jump and hook boost — locked *and* unlocked |
 | `test_outcomes` | hero/neutral/dark runs, the stage goal, who can hurt a civilian |
 | `test_graph` | where each outcome leads, and that every stage it names exists |
+| `test_populations` | the same stage built three ways, one per arriving path |
 
 Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
 matters: it makes one frame exactly one physics tick, so the frame numbers in a
@@ -420,7 +422,16 @@ stages, those branch again, and all roads meet at the citadel. Those seven
 stages are placeholders — one screen, a name on the wall, two people to save and
 a way out — so the routing is proven before any of them is built for real. The
 graph lives in `src/core/stage_graph.tres`; rearranging the game is editing that
-one file. §10 of the doc says what to pick up next.
+one file.
+
+A stage also **plays differently depending on how you got there**. Arrive at the
+greybox on a hero run and there's someone extra up in the gallery; arrive on a
+dark one and Juno's clock has already run out, four more enemies are between you
+and the exit, and the alert starts at 1. Press **F6 / F7 / F8** in a debug build
+to replay the current stage as a hero, neutral or dark arrival.
+
+§11 of the doc lists everything still outstanding: endings, content, bosses,
+caches, hazards, menus and the rest.
 
 ## Not built yet
 

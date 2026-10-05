@@ -144,5 +144,18 @@ func newest_shot() -> Node:
 	return alive[-1] if alive.size() > 0 else null
 
 
+## A node in the level by path, falling back to a search by name: population
+## groups (M3) moved several nodes a level deep, so a bare name is no longer a
+## direct child path.
 func node(path: String) -> Node:
-	return level.get_node_or_null(path)
+	var found := level.get_node_or_null(path)
+	return found if found else level.find_child(path, true, false)
+
+
+## A civilian by the name they're drawn with. Levels move people between
+## population groups, which changes their node path but not who they are.
+func civilian(display_name: String) -> Node2D:
+	for person in get_nodes_in_group(&"civilians"):
+		if person.display_name == display_name:
+			return person
+	return null

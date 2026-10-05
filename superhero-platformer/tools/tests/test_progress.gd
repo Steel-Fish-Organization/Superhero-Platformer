@@ -35,7 +35,7 @@ func step(f: int) -> bool:
 
 		# ---- rescuing a named survivor pays out --------------------------
 		5:
-			var ada: Node2D = node("Civilian2")
+			var ada: Node2D = civilian("Ada")
 			player.global_position = ada.global_position + Vector2(-10.0, 0.0)
 			player.respawned.emit()
 		8:
@@ -99,7 +99,7 @@ func step(f: int) -> bool:
 			var tracker := node("RescueTracker")
 			tracker.saved = tracker.total - 1
 			tracker.lost = 0
-			tracker._on_rescued(node("Civilian1"))
+			tracker._on_rescued(civilian("Dex"))
 			check("saving everyone earns the clean sweep",
 				state.has_upgrade(&"field_medic"), str(state.unlocked))
 		34:

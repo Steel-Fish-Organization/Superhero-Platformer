@@ -71,6 +71,7 @@ func _build(id: StringName, display_name: String) -> void:
 	_rooms()
 	_civilian(18, {&"display_name": "Bystander"})
 	_civilian(30, {&"danger_time": 12.0})
+	_populations()
 	_add("res://src/level/stage_goal.tscn", "StageGoal", 48)
 	_add("res://src/checkpoint.tscn", "Checkpoint", 6)
 	_rescue_nodes(id)
@@ -119,13 +120,35 @@ func _civilian(x: int, props := {}) -> void:
 	_add("res://src/rescue/civilian.tscn", "Civilian", x, props)
 
 
-func _add(path: String, base_name: String, x: int, props := {}) -> Node2D:
+## Even a placeholder stage shows which path you walked in on: a hero arrival
+## finds one more person, a dark arrival finds two walkers in the way.
+func _populations() -> void:
+	var hero := _population("Pop_Hero", ["H"])
+	_add("res://src/rescue/civilian.tscn", "Civilian", 42, {&"display_name": "Witness"}, hero)
+
+	var dark := _population("Pop_Dark", ["D"])
+	_add("res://src/enemies/walker.tscn", "Walker", 24, {}, dark)
+	_add("res://src/enemies/walker.tscn", "Walker", 38, {}, dark)
+
+
+func _population(name_str: String, paths: Array[String]) -> Node2D:
+	var group := Node2D.new()
+	group.name = name_str
+	group.set_script(load("res://src/level/population.gd"))
+	group.set(&"on_paths", paths)
+	group.set(&"on_first_visit", false)
+	root_node.add_child(group)
+	return group
+
+
+func _add(path: String, base_name: String, x: int, props := {}, parent: Node2D = null) -> Node2D:
 	var node := (load(path) as PackedScene).instantiate() as Node2D
 	node.name = "%s%d" % [base_name, root_node.get_child_count()]
 	node.position = Vector2(x * T + T * 0.5, FLOOR_ROW * T)
 	for key in props:
 		node.set(key, props[key])
-	root_node.add_child(node)
+	var holder: Node2D = parent if parent != null else root_node
+	holder.add_child(node)
 	return node
 
 

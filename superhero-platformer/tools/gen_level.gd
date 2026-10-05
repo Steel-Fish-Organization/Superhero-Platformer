@@ -66,6 +66,7 @@ func _initialize() -> void:
 	_room_d()
 	_room_e()
 
+	_populations()
 	_ladders_node()
 	_rooms_node()
 	_rescue_nodes()
@@ -196,13 +197,8 @@ func _room_e() -> void:
 	# a turret on a pedestal at the far end
 	_slab(206, 209, LOW_FLOOR - 3, LOW_FLOOR - 1)
 	_spawn("res://src/enemies/turret.tscn", "Turret", 207, LOW_FLOOR - 3, {&"x_offset": 4.0})
-	# someone in real danger past the enemies: fight through before the clock
-	# runs out. The one upgrade you can lose by being slow.
-	_civilian(210, LOW_FLOOR, {
-		&"display_name": "Juno",
-		&"danger_time": 14.0,
-		&"upgrade": load("res://src/rescue/upgrades/double_jump.tres"),
-	})
+	# Juno lives in the hero/neutral population: arrive here on a dark run and
+	# she's already gone. See _populations().
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +285,10 @@ var spawn_counts := {}
 
 ## Instances `path` centred on tile column x, standing on row y. `props` are set
 ## on the node; the special key `x_offset` nudges it sideways in pixels.
+## Everything spawned while this is set goes under that population group.
+var into: Node2D = null
+
+
 func _spawn(path: String, base_name: String, x: int, y: int, props := {}) -> Node2D:
 	spawn_counts[base_name] = spawn_counts.get(base_name, 0) + 1
 	var node := (load(path) as PackedScene).instantiate() as Node2D
@@ -297,7 +297,8 @@ func _spawn(path: String, base_name: String, x: int, y: int, props := {}) -> Nod
 	for key in props:
 		if key != &"x_offset":
 			node.set(key, props[key])
-	level_root.add_child(node)
+	var parent: Node2D = into if into != null else level_root
+	parent.add_child(node)
 	return node
 
 
@@ -314,6 +315,45 @@ func _hook(x: int, y: int) -> void:
 ## danger_time -- see src/rescue/civilian.gd.
 func _civilian(x: int, y: int, props := {}) -> void:
 	_spawn("res://src/rescue/civilian.tscn", "Civilian", x, y, props)
+
+
+## The parts of the greybox that depend on how you got here. Three ways to play
+## one stage, which is what keeps the level count sane -- docs/three-paths.md §6.
+func _populations() -> void:
+	# Arrive as a hero and there's someone else to find, up in the gallery.
+	into = _population("Pop_Hero", ["H"])
+	_civilian(178, HIGH_FLOOR, {&"display_name": "Wen"})
+
+	# Juno is here unless you arrived on a dark run, in which case the clock on
+	# her ran out before you did.
+	into = _population("Pop_HeroNeutral", ["H", "N"], true)
+	_civilian(210, LOW_FLOOR, {
+		&"display_name": "Juno",
+		&"danger_time": 14.0,
+		&"upgrade": load("res://src/rescue/upgrades/double_jump.tres"),
+	})
+
+	# A dark arrival finds the place crawling: more between you and the exit,
+	# and the alert already at 1 (see alert.gd).
+	into = _population("Pop_Dark", ["D"])
+	_spawn("res://src/enemies/walker.tscn", "Walker", 170, LOW_FLOOR)
+	_spawn("res://src/enemies/walker.tscn", "Walker", 196, LOW_FLOOR)
+	_drone(186, LOW_FLOOR - 10, 24.0)
+	_spawn("res://src/enemies/turret.tscn", "Turret", 165, LOW_FLOOR)
+	into = null
+
+
+## Nodes that only exist on some arriving paths. Everything added while `into` is
+## set goes under that group instead of straight into the level.
+## See src/level/population.gd.
+func _population(name_str: String, paths: Array[String], first_visit := false) -> Node2D:
+	var group := Node2D.new()
+	group.name = name_str
+	group.set_script(load("res://src/level/population.gd"))
+	group.set(&"on_paths", paths)
+	group.set(&"on_first_visit", first_visit)
+	level_root.add_child(group)
+	return group
 
 
 ## The rescue bookkeeping every level needs: who's been saved, and how far the
