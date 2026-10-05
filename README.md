@@ -401,6 +401,13 @@ godot --headless --path . --script tools/gen_level.gd    # rebuilds greybox.tscn
 The level generator **overwrites** `levels/greybox.tscn` — handy while the level
 is throwaway, but stop using it once you start editing the scene in the editor.
 
+## Where this is going
+
+`docs/three-paths.md` is the design for the next big piece: rescues decide
+whether a stage ends hero, neutral or dark, and that decides which stage you
+play next. It also splits upgrades out of the rescue system into hidden caches,
+and works through the level count that branching costs. None of it is built yet.
+
 ## Not built yet
 
 No menus, pause, save system, lives, item drops, or bosses. Killed enemies stay
