@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="StageGraph" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/stage_graph.gd" id="1_graph"]
+
+[resource]
+script = ExtResource("1_graph")
+first_stage = &"greybox"
+stages = {
+&"greybox": {
+"name": "FOUNDRY DISTRICT",
+"H": &"rooftops",
+"N": &"transit",
+"D": &"undercity"
+},
+&"rooftops": {
+"name": "ROOFTOPS",
+"H": &"sky_spire",
+"N": &"sky_spire",
+"D": &"deep_channel"
+},
+&"transit": {
+"name": "MIDNIGHT TRANSIT",
+"H": &"sky_spire",
+"N": &"deep_channel",
+"D": &"scrap_canyon"
+},
+&"undercity": {
+"name": "UNDERCITY",
+"H": &"deep_channel",
+"N": &"scrap_canyon",
+"D": &"scrap_canyon"
+},
+&"sky_spire": {
+"name": "SKY REFINERY",
+"H": &"citadel",
+"N": &"citadel",
+"D": &"citadel"
+},
+&"deep_channel": {
+"name": "DEEP CHANNEL",
+"H": &"citadel",
+"N": &"citadel",
+"D": &"citadel"
+},
+&"scrap_canyon": {
+"name": "SCRAP CANYON",
+"H": &"citadel",
+"N": &"citadel",
+"D": &"citadel"
+},
+&"citadel": {
+"name": "CITADEL CORE",
+"H": &"",
+"N": &"",
+"D": &""
+}
+}

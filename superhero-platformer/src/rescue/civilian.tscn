@@ -1,11 +1,15 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/rescue/civilian.gd" id="1_civ"]
 [ext_resource type="AudioStream" path="res://assets/8Bit-Sounds/SFX - Player/Interact.mp3" id="2_rescue"]
 [ext_resource type="AudioStream" path="res://assets/8Bit-Sounds/SFX - Environment/Siren Loop.mp3" id="3_danger"]
+[ext_resource type="Script" path="res://src/rescue/civilian_hitbox.gd" id="4_hit"]
 
 [sub_resource type="RectangleShape2D" id="Rect_reach"]
 size = Vector2(28, 26)
+
+[sub_resource type="RectangleShape2D" id="Rect_hit"]
+size = Vector2(10, 16)
 
 [node name="Civilian" type="Area2D"]
 collision_layer = 64
@@ -16,6 +20,16 @@ script = ExtResource("1_civ")
 [node name="Shape" type="CollisionShape2D" parent="."]
 position = Vector2(0, -11)
 shape = SubResource("Rect_reach")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 256
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_hit")
+
+[node name="Shape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -8)
+shape = SubResource("Rect_hit")
 
 [node name="SndRescue" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("2_rescue")

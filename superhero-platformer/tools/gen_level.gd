@@ -178,7 +178,9 @@ func _room_d() -> void:
 func _room_e() -> void:
 	_bg_fill(162, 215, 39, LOW_BOTTOM)
 	_ground(162, 215, LOW_FLOOR, LOW_BOTTOM)
-	_slab(214, 215, LOW_FLOOR - 14, LOW_FLOOR - 1)      # end wall
+	_slab(215, 215, LOW_FLOOR - 14, LOW_FLOOR - 1)      # end wall
+	# the way out, at the far end: touching it settles the run
+	_spawn("res://src/level/stage_goal.tscn", "StageGoal", 213, LOW_FLOOR)
 	_checkpoint(165, LOW_FLOOR)
 
 	_spawn("res://src/enemies/walker.tscn", "Walker", 176, LOW_FLOOR)
@@ -196,7 +198,7 @@ func _room_e() -> void:
 	_spawn("res://src/enemies/turret.tscn", "Turret", 207, LOW_FLOOR - 3, {&"x_offset": 4.0})
 	# someone in real danger past the enemies: fight through before the clock
 	# runs out. The one upgrade you can lose by being slow.
-	_civilian(212, LOW_FLOOR, {
+	_civilian(210, LOW_FLOOR, {
 		&"display_name": "Juno",
 		&"danger_time": 14.0,
 		&"upgrade": load("res://src/rescue/upgrades/double_jump.tres"),

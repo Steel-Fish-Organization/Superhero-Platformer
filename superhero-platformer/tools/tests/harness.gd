@@ -48,6 +48,10 @@ func step(_frame: int) -> bool:
 func _physics_process(_delta: float) -> bool:
 	frame += 1
 	if frame == 1:
+		# Suites drive one level by hand. A goal that travelled to the next stage
+		# would swap the scene out from under them mid-run.
+		for goal in get_nodes_in_group(&"stage_goal"):
+			goal.auto_advance = false
 		setup()
 		return false
 	if step(frame):

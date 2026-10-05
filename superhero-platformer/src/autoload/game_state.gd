@@ -9,6 +9,8 @@ extends Node
 ## take anything away, so going back for someone you missed is never a risk.
 
 signal rescues_changed(stage_id: StringName)
+## A stage was finished and counted as hero, neutral or dark.
+signal stage_finished(stage_id: StringName, code: String)
 signal upgrade_unlocked(upgrade: Upgrade)
 signal word_completed(word: String)
 ## Progress was wiped -- anything holding earned state should rebuild from here.
@@ -25,19 +27,36 @@ const WORD := "GUARDIAN"
 const WORD_REWARD_ID := &"word_reward"
 
 const UPGRADE_DIR := "res://src/rescue/upgrades"
+## The shape of the game: which stage follows which, per outcome.
+const GRAPH_PATH := "res://src/core/stage_graph.tres"
 
 ## stage_id -> {"saved": int, "total": int, "lost": int}
 var stages: Dictionary = {}
 ## Letters collected so far, in the order they were found.
 var letters: Array[String] = []
+## stage_id -> "H" / "N" / "D", the way that stage was LAST finished. The latest
+## run owns the branch, unlike `stages` below, which keeps your best rescue
+## count: a player who first cleared a stage as a hero has to be able to go back
+## and take the dark route afterwards.
+var outcomes: Dictionary = {}
+## Every stage finish this run, in order: ["H", "N", "N", "D"]. The ending reads
+## this once endings exist (M4).
+var path_history: Array[String] = []
 ## Upgrade ids earned. The resources themselves live in `library`.
 var unlocked: Array[StringName] = []
 ## id -> Upgrade, every upgrade resource on disk.
 var library: Dictionary = {}
+## The stage graph, loaded once at startup.
+var graph: StageGraph
+## The stage being played, for reloads and for the next lookup.
+var current_stage_id: StringName = &""
 
 
 func _ready() -> void:
 	_load_library()
+	graph = load(GRAPH_PATH) as StageGraph
+	if graph == null:
+		push_warning("GameState: no stage graph at %s; stages won't link up." % GRAPH_PATH)
 	load_game()
 
 
@@ -97,6 +116,24 @@ func record_stage(stage_id: StringName, saved: int, total: int, lost: int) -> vo
 
 func stage_record(stage_id: StringName) -> Dictionary:
 	return stages.get(stage_id, {"saved": 0, "total": 0, "lost": 0})
+
+
+## Settles how a stage was finished. Always overwrites: the most recent run is
+## the one the stage graph follows.
+func record_outcome(stage_id: StringName, code: String) -> void:
+	outcomes[stage_id] = code
+	path_history.append(code)
+	stage_finished.emit(stage_id, code)
+
+
+## "H", "N", "D", or "" for a stage that has never been finished.
+func outcome_of(stage_id: StringName) -> String:
+	return outcomes.get(stage_id, "")
+
+
+## Where an outcome leads. Empty when the run ends here.
+func next_stage_after(stage_id: StringName, code: String) -> StringName:
+	return graph.next_stage(stage_id, code) if graph else &""
 
 
 ## Everyone saved, across every stage played so far.
@@ -171,6 +208,8 @@ func save_game() -> bool:
 		"version": SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
 		"stages": stages,
+		"outcomes": outcomes,
+		"path_history": path_history,
 		"letters": letters,
 		"unlocked": unlocked.map(func(id: StringName) -> String: return String(id)),
 	}, "\t"))
@@ -199,6 +238,10 @@ func load_game() -> bool:
 			"total": int(record.get("total", 0)),
 			"lost": int(record.get("lost", 0)),
 		}
+	outcomes = {}
+	for key in data.get("outcomes", {}):
+		outcomes[StringName(key)] = String(data["outcomes"][key])
+	path_history.assign(data.get("path_history", []))
 	letters.assign(data.get("letters", []))
 	unlocked.clear()
 	for id in data.get("unlocked", []):
@@ -209,6 +252,8 @@ func load_game() -> bool:
 ## Wipes progress, in memory and on disk. Handy while testing.
 func reset(erase_file := false) -> void:
 	stages.clear()
+	outcomes.clear()
+	path_history.clear()
 	letters.clear()
 	unlocked.clear()
 	if erase_file and FileAccess.file_exists(save_path):

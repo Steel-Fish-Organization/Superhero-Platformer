@@ -39,12 +39,15 @@ extends Area2D
 ## Flips the collision layers so enemies can fire this same projectile.
 @export var hostile := false
 
-# layers: 1 world, 2 player, 3 hostile, 4 player_shot, 6 enemy_shot
+# layers: 1 world, 2 player, 3 hostile, 4 player_shot, 6 enemy_shot, 9 civilian
 const WORLD := 1
 const PLAYER := 2
 const HOSTILE := 4
 const PLAYER_SHOT := 8
 const ENEMY_SHOT := 32
+## Only enemy fire carries this in its mask. The hero's shots pass straight
+## through bystanders -- you cannot shoot a civilian in this game, by design.
+const CIVILIAN := 256
 
 var direction := Vector2.RIGHT
 var velocity := Vector2.ZERO
@@ -60,10 +63,12 @@ var _deflected := false
 
 func _ready() -> void:
 	collision_layer = ENEMY_SHOT if hostile else PLAYER_SHOT
-	collision_mask = (WORLD | PLAYER) if hostile else (WORLD | HOSTILE)
+	collision_mask = (WORLD | PLAYER | CIVILIAN) if hostile else (WORLD | HOSTILE)
 	_hits_left = pierce
 	_bounces_left = bounces
-	body_entered.connect(_on_body_entered)
+	body_entered.connect(_on_hit)
+	# Civilians are areas, not bodies: only enemy fire has them in its mask.
+	area_entered.connect(_on_hit)
 
 
 ## Called by whoever fires it, before it is added to the scene.
@@ -166,7 +171,7 @@ func _is_offscreen() -> bool:
 	return not view.grow(offscreen_margin).has_point(global_position)
 
 
-func _on_body_entered(body: Node) -> void:
+func _on_hit(body: Node) -> void:
 	if _dead or _deflected or body == shooter:
 		return
 	if not body.has_method(&"take_damage"):

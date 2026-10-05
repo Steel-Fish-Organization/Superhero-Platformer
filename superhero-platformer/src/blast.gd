@@ -12,6 +12,8 @@ const PLAYER := 2
 const HOSTILE := 4
 const PLAYER_SHOT := 8
 const ENEMY_SHOT := 32
+## An enemy explosion catches bystanders; the hero's never does.
+const CIVILIAN := 256
 
 var _age := 0.0
 var _hit: Array[Node] = []
@@ -23,11 +25,13 @@ func set_hostile(value: bool) -> void:
 
 func _ready() -> void:
 	collision_layer = ENEMY_SHOT if hostile else PLAYER_SHOT
-	collision_mask = PLAYER if hostile else HOSTILE
+	collision_mask = (PLAYER | CIVILIAN) if hostile else HOSTILE
 	# body_entered also fires for anything already standing inside the blast when
 	# it appears, so there's no need to sweep overlaps here -- and we couldn't
 	# anyway, since the physics server hasn't stepped yet on the frame we spawn.
 	body_entered.connect(_damage)
+	# Civilians are areas rather than bodies.
+	area_entered.connect(_damage)
 
 
 func _process(delta: float) -> void:

@@ -16,6 +16,9 @@ signal rescued(civilian: Civilian)
 signal lost(civilian: Civilian)
 
 enum State { TRAPPED, FLEEING, SAFE, LOST }
+## What killed them, for the stage summary and for tuning a level that turns out
+## to be a meat grinder.
+enum Cause { NONE, CLOCK, CAUGHT_IN_FIRE }
 
 const TRIGGER_LAYER := 64     # physics layer 7, "trigger"
 const PLAYER_LAYER := 2
@@ -32,6 +35,9 @@ const PLAYER_LAYER := 2
 @export var upgrade: Upgrade
 
 @export_group("Danger")
+## Hits from enemy fire, enemy explosions or hazards before they're killed. The
+## hero cannot hurt them at all: their hitbox isn't in any player attack's mask.
+@export var max_health := 6
 ## Seconds from first being seen until they're lost. 0 = in no immediate danger.
 @export var danger_time := 0.0:
 	set(value):
@@ -45,8 +51,11 @@ const PLAYER_LAYER := 2
 @export var flee_seconds := 1.4
 
 var state := State.TRAPPED
+var cause := Cause.NONE
 var time_left := 0.0
+var health := 0
 
+var _flash := 0.0
 var _player_near := false
 var _seen := false
 var _flee_timer := 0.0
@@ -63,6 +72,7 @@ func _ready() -> void:
 	collision_mask = PLAYER_LAYER
 	monitorable = false
 	time_left = danger_time
+	health = max_health
 	if Engine.is_editor_hint():
 		return
 	body_entered.connect(func(body: Node) -> void:
@@ -79,6 +89,9 @@ func _process(delta: float) -> void:
 		return
 
 	_bob += delta
+	if _flash > 0.0:
+		_flash -= delta
+		queue_redraw()
 	match state:
 		State.TRAPPED:
 			_tick_danger(delta)
@@ -110,9 +123,35 @@ func _tick_danger(delta: float) -> void:
 			_snd_danger.play()
 	time_left -= delta
 	if time_left <= 0.0:
-		state = State.LOST
 		time_left = 0.0
-		lost.emit(self)
+		_die(Cause.CLOCK)
+
+
+## Called by enemy shots and explosions through the Hitbox child. Returns false
+## when the hit did nothing, so a shot passes through someone already gone.
+func take_damage(amount: int, _from: Node = null) -> bool:
+	if state != State.TRAPPED or amount <= 0:
+		return false
+	health -= amount
+	_flash = 0.2
+	if _snd_danger and not _snd_danger.playing:
+		_snd_danger.play()
+	if health <= 0:
+		_die(Cause.CAUGHT_IN_FIRE)
+	queue_redraw()
+	return true
+
+
+func _die(by: Cause) -> void:
+	if state != State.TRAPPED:
+		return
+	state = State.LOST
+	cause = by
+	health = 0
+	if _snd_danger:
+		_snd_danger.stop()
+	lost.emit(self)
+	queue_redraw()
 
 
 func _on_screen() -> bool:
@@ -152,6 +191,9 @@ func _draw() -> void:
 	if state == State.TRAPPED and _seen and time_left <= panic_time and danger_time > 0.0:
 		if int(_bob * 8.0) % 2 == 0:
 			body_colour = Color(1.0, 0.35, 0.35)
+	# white flash when caught by enemy fire
+	if _flash > 0.0 and int(_flash * 30.0) % 2 == 0:
+		body_colour = Color(3.0, 3.0, 3.0)
 
 	var lean := 0.0 if state != State.LOST else 3.0   # the lost slump over
 	draw_rect(Rect2(-3.0 + lean, -10.0, 6.0, 7.0), body_colour, true)        # body

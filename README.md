@@ -384,6 +384,8 @@ godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 | `test_rescue` | rescuing, danger clocks, losing someone, the alert level |
 | `test_progress` | the save file, letters, upgrades reaching the hero |
 | `test_abilities` | air dash, double jump and hook boost — locked *and* unlocked |
+| `test_outcomes` | hero/neutral/dark runs, the stage goal, who can hurt a civilian |
+| `test_graph` | where each outcome leads, and that every stage it names exists |
 
 Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
 matters: it makes one frame exactly one physics tick, so the frame numbers in a
@@ -396,6 +398,7 @@ filling in `step(frame)`.
 ```bash
 python tools/gen_greybox.py                              # placeholder art + tileset
 godot --headless --path . --script tools/gen_level.gd    # rebuilds greybox.tscn
+godot --headless --path . --script tools/gen_stubs.gd    # rebuilds the 7 stub stages
 ```
 
 The level generator **overwrites** `levels/greybox.tscn` — handy while the level
@@ -404,9 +407,20 @@ is throwaway, but stop using it once you start editing the scene in the editor.
 ## Where this is going
 
 `docs/three-paths.md` is the design for the next big piece: rescues decide
-whether a stage ends hero, neutral or dark, and that decides which stage you
-play next. It also splits upgrades out of the rescue system into hidden caches,
-and works through the level count that branching costs. None of it is built yet.
+whether a stage ends **hero**, **neutral** or **dark**, and that decides which
+stage you play next.
+
+Its first two milestones are built. Reaching the exit at the far end of Room E
+settles the run, and the HUD shows all three outcomes while you play, greying out
+the ones you can no longer reach. Civilians can now be killed by enemy fire as
+well as by their danger clocks — never by you.
+
+That outcome then **takes you somewhere**: the greybox branches to one of three
+stages, those branch again, and all roads meet at the citadel. Those seven
+stages are placeholders — one screen, a name on the wall, two people to save and
+a way out — so the routing is proven before any of them is built for real. The
+graph lives in `src/core/stage_graph.tres`; rearranging the game is editing that
+one file. §10 of the doc says what to pick up next.
 
 ## Not built yet
 
