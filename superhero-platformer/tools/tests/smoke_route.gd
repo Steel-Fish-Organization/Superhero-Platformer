@@ -12,6 +12,7 @@ var state: Node
 var router: Node
 var frame := 0
 var visited: Array[String] = []
+var outros_seen: Array[String] = []
 var acted_in := ""
 var failures := 0
 
@@ -37,6 +38,12 @@ func _physics_process(_delta: float) -> bool:
 	var level := current_scene
 	if level == null:
 		return frame > 600
+	# An outro between stages: note it and click straight through.
+	if level is Cutscene:
+		print("  outro after %s (%s)" % [state.current_stage_id, level.outcome_code])
+		outros_seen.append(String(state.current_stage_id))
+		level.skip()
+		return false
 	var stage := String(state.current_stage_id)
 	if not visited.has(stage):
 		visited.append(stage)
@@ -72,6 +79,11 @@ func _physics_process(_delta: float) -> bool:
 		var want := ["greybox", "rooftops", "sky_spire", "citadel"]
 		var ok: bool = visited == want
 		print(("PASS  " if ok else "FAIL  ") + "a real run travels the graph   [wanted %s]" % str(want))
+		if not ok:
+			failures += 1
+		var want_outros := ["greybox"]      # the only stage with an outro so far
+		ok = outros_seen == want_outros
+		print(("PASS  " if ok else "FAIL  ") + "outros play between stages   [saw %s, wanted %s]" % [str(outros_seen), str(want_outros)])
 		if not ok:
 			failures += 1
 		state.reset(true)

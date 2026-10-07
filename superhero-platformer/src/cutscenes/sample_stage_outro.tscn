@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bv1mr5evyteyx"]
+[gd_scene load_steps=3 format=3 uid="uid://wrych2ktru5b"]
 
 [ext_resource type="Texture2D" uid="uid://bakq4d3aa0ddg" path="res://assets/background/sindrehsoereide-comicbook-4785537_640.jpg" id="1_3tpbe"]
 [ext_resource type="Script" uid="uid://2g6ahlnq6ddo" path="res://src/cutscenes/cutscene.gd" id="1_7oo38"]

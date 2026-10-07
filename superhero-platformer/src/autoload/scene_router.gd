@@ -11,6 +11,11 @@ signal transition_finished(target: String)
 
 @onready var _fade: ColorRect = $Fade
 
+## Handed to a cutscene by play_cutscene(): the outcome it should tell, and the
+## stage to load once it's over.
+var cutscene_outcome := ""
+var cutscene_next: StringName = &""
+
 var _busy := false
 
 
@@ -62,6 +67,31 @@ func goto_stage(stage_id: StringName) -> void:
 		path = state.graph.scene_path(stage_id)
 		state.current_stage_id = stage_id
 	change_scene(path)
+
+
+## Plays a cutscene for an outcome ("H", "N" or "D"), then goes on to
+## `next_stage` when the cutscene calls finish_cutscene().
+func play_cutscene(path: String, outcome_code: String, next_stage: StringName) -> void:
+	cutscene_outcome = outcome_code
+	cutscene_next = next_stage
+	change_scene(path)
+
+
+## Called by a cutscene on its last line. With no stage to go to, the run is
+## over, and there's no ending screen yet, so it starts again from the top.
+func finish_cutscene() -> void:
+	var next := cutscene_next
+	cutscene_outcome = ""
+	cutscene_next = &""
+	# A cutscene with nothing to show ends before its own fade-in has finished.
+	while _busy:
+		await transition_finished
+	if next == &"":
+		var state := get_node_or_null(^"/root/GameState")
+		if state == null or state.graph == null:
+			return
+		next = state.graph.first_stage
+	goto_stage(next)
 
 
 func reload_stage() -> void:

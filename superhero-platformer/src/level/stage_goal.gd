@@ -21,6 +21,10 @@ const PLAYER_LAYER := 2
 @export var auto_advance := true
 ## How long the result stays on screen before the next stage loads.
 @export var result_time := 2.0
+## A Cutscene played after the result and before the next stage. It picks its
+## hero / neutral / dark script from how the stage was finished. Leave empty to
+## go straight on.
+@export_file("*.tscn") var outro := ""
 
 var finished := false
 var outcome_code := ""
@@ -71,20 +75,25 @@ func _finish(player: Node) -> void:
 		player.set(&"frozen", true)
 	stage_finished.emit(outcome_code, name_of)
 
-	if auto_advance and next_stage_id != &"":
+	if auto_advance and (next_stage_id != &"" or outro != ""):
 		_travel.call_deferred()
 
 
-## Holds the result on screen for a moment, then hands over to the router. The
-## hero is already frozen, so the pause reads as the stage ending rather than as
-## the game hanging.
+## Holds the result on screen for a moment, then hands over to the router: the
+## outro first if there is one, which goes on to the next stage when it's done.
+## The hero is already frozen, so the pause reads as the stage ending rather
+## than as the game hanging.
 func _travel() -> void:
 	var router := get_node_or_null(^"/root/SceneRouter")
 	if router == null:
 		push_warning("StageGoal: no SceneRouter, so '%s' can't be loaded." % next_stage_id)
 		return
 	await get_tree().create_timer(result_time).timeout
-	if is_instance_valid(self):
+	if not is_instance_valid(self):
+		return
+	if outro != "":
+		router.play_cutscene(outro, outcome_code, next_stage_id)
+	else:
 		router.goto_stage(next_stage_id)
 
 

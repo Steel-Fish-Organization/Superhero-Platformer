@@ -1,0 +1,137 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/cutscenes/comic_panel.gd" id="1_panel"]
+[ext_resource type="Shader" path="res://src/cutscenes/chroma_key.gdshader" id="2_key"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frame"]
+bg_color = Color(0.96, 0.93, 0.82, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.08, 0.08, 0.1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_key"]
+shader = ExtResource("2_key")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bubble"]
+content_margin_left = 4.0
+content_margin_top = 2.0
+content_margin_right = 4.0
+content_margin_bottom = 2.0
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.08, 0.1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_caption"]
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 3.0
+bg_color = Color(1, 0.86, 0.35, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="ComicPanel" type="PanelContainer"]
+modulate = Color(1, 1, 1, 0)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_frame")
+script = ExtResource("1_panel")
+
+[node name="Inside" type="Control" parent="."]
+clip_contents = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="Inside"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_key")
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -33.0
+offset_right = 33.0
+offset_bottom = -1.0
+grow_vertical = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bubble" type="PanelContainer" parent="Inside"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bubble")
+
+[node name="Lines" type="VBoxContainer" parent="Inside/Bubble"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Speaker" type="Label" parent="Inside/Bubble/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.12, 0.12, 1)
+theme_override_constants/line_spacing = 0
+theme_override_font_sizes/font_size = 7
+text = "SPEAKER"
+
+[node name="Text" type="Label" parent="Inside/Bubble/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.08, 0.08, 0.1, 1)
+theme_override_constants/line_spacing = 0
+theme_override_font_sizes/font_size = 8
+text = "What they say."
+autowrap_mode = 3
+clip_text = true
+visible_characters_behavior = 1
+
+[node name="Caption" type="PanelContainer" parent="Inside"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_caption")
+
+[node name="CaptionText" type="Label" parent="Inside/Caption"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.08, 0.08, 0.1, 1)
+theme_override_font_sizes/font_size = 8
+text = "Later that day..."
+horizontal_alignment = 1
+visible_characters_behavior = 1

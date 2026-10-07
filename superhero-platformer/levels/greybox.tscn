@@ -1,7 +1,7 @@
 [gd_scene load_steps=26 format=4 uid="uid://clylul7arovw0"]
 
 [ext_resource type="TileSet" uid="uid://ddjr33bltofk8" path="res://assets/greybox/tileset.tres" id="1_sfg8i"]
-[ext_resource type="PackedScene" path="res://src/rescue/civilian.tscn" id="2_l5vkj"]
+[ext_resource type="PackedScene" uid="uid://c0fr8n6swlbwq" path="res://src/rescue/civilian.tscn" id="2_l5vkj"]
 [ext_resource type="Resource" path="res://src/rescue/upgrades/air_dash.tres" id="4_cy20r"]
 [ext_resource type="PackedScene" path="res://src/hook.tscn" id="5_pmjwi"]
 [ext_resource type="PackedScene" path="res://src/target.tscn" id="7_j5syp"]
@@ -13,7 +13,7 @@
 [ext_resource type="PackedScene" path="res://src/enemies/flyer.tscn" id="19_6ksyu"]
 [ext_resource type="PackedScene" path="res://src/enemies/hopper.tscn" id="21_3c5ms"]
 [ext_resource type="PackedScene" path="res://src/enemies/turret.tscn" id="23_3aw6y"]
-[ext_resource type="Script" path="res://src/level/population.gd" id="25_mw2fe"]
+[ext_resource type="Script" uid="uid://dds78p4cdetmr" path="res://src/level/population.gd" id="25_mw2fe"]
 [ext_resource type="Resource" path="res://src/rescue/upgrades/double_jump.tres" id="26_thkr4"]
 [ext_resource type="Script" uid="uid://d313tryp27doi" path="res://src/ladders.gd" id="27_e3fw8"]
 [ext_resource type="Script" uid="uid://cwo3txk6kynnx" path="res://src/room.gd" id="28_ihiss"]
@@ -42,6 +42,7 @@ tile_set = ExtResource("1_sfg8i")
 position = Vector2(516, 432)
 display_name = "Dex"
 upgrade = ExtResource("4_cy20r")
+danger_time = 5.0
 
 [node name="Hook1" parent="." instance=ExtResource("5_pmjwi")]
 position = Vector2(204, 384)
@@ -76,6 +77,7 @@ position = Vector2(1220, 120)
 display_name = "Ada"
 letter = "G"
 upgrade = ExtResource("14_epa2c")
+danger_time = 5.0
 
 [node name="Target2" parent="." instance=ExtResource("7_j5syp")]
 position = Vector2(1404, 184)
@@ -104,6 +106,7 @@ drift_speed = 20.0
 
 [node name="StageGoal1" parent="." instance=ExtResource("15_p848r")]
 position = Vector2(1708, 193)
+outro = "res://src/cutscenes/greybox_outro.tscn"
 
 [node name="Checkpoint3" parent="." instance=ExtResource("12_edhgm")]
 position = Vector2(1324, 432)
@@ -141,6 +144,7 @@ on_first_visit = false
 [node name="Civilian3" parent="Pop_Hero" instance=ExtResource("2_l5vkj")]
 position = Vector2(1439, 192)
 display_name = "Wen"
+danger_time = 5.0
 
 [node name="Pop_HeroNeutral" type="Node2D" parent="."]
 script = ExtResource("25_mw2fe")
@@ -150,7 +154,7 @@ on_paths = Array[String](["H", "N"])
 position = Vector2(1700, 432)
 display_name = "Juno"
 upgrade = ExtResource("26_thkr4")
-danger_time = 14.0
+danger_time = 5.0
 
 [node name="Pop_Dark" type="Node2D" parent="."]
 script = ExtResource("25_mw2fe")

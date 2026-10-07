@@ -1,0 +1,171 @@
+[gd_scene load_steps=16 format=3 uid="uid://bv1mr5evyteyx"]
+
+[ext_resource type="Script" uid="uid://2g6ahlnq6ddo" path="res://src/cutscenes/cutscene.gd" id="1_7oo38"]
+[ext_resource type="Texture2D" uid="uid://bakq4d3aa0ddg" path="res://assets/background/sindrehsoereide-comicbook-4785537_640.jpg" id="1_3tpbe"]
+[ext_resource type="Script" path="res://src/cutscenes/cutscene_speaker.gd" id="3_speaker"]
+[ext_resource type="Texture2D" path="res://assets/sprites/Standard sprites upd.png" id="4_people"]
+[ext_resource type="Texture2D" uid="uid://blqo4pv1dvw0r" path="res://assets/sprites/player_sprite_rough_wip.png" id="5_hero"]
+[ext_resource type="PackedScene" path="res://src/cutscenes/comic_panel.tscn" id="6_panel"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_citizen"]
+atlas = ExtResource("4_people")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="Resource" id="Resource_citizen"]
+script = ExtResource("3_speaker")
+name = "Citizen"
+portrait = SubResource("AtlasTexture_citizen")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hero"]
+atlas = ExtResource("5_hero")
+region = Rect2(24, 0, 24, 32)
+
+[sub_resource type="Resource" id="Resource_hero"]
+script = ExtResource("3_speaker")
+name = "Hero"
+portrait = SubResource("AtlasTexture_hero")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_silver"]
+atlas = ExtResource("5_hero")
+region = Rect2(24, 32, 24, 32)
+
+[sub_resource type="Resource" id="Resource_silver"]
+script = ExtResource("3_speaker")
+name = "Silver Spoon"
+portrait = SubResource("AtlasTexture_silver")
+tint = Color(0.6, 0.62, 0.7, 1)
+flip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fellow"]
+atlas = ExtResource("5_hero")
+region = Rect2(24, 64, 24, 32)
+
+[sub_resource type="Resource" id="Resource_fellow"]
+script = ExtResource("3_speaker")
+name = "Fellow hero"
+portrait = SubResource("AtlasTexture_fellow")
+tint = Color(1, 0.55, 0.45, 1)
+flip = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt"]
+content_margin_left = 4.0
+content_margin_top = 1.0
+content_margin_right = 4.0
+content_margin_bottom = 1.0
+bg_color = Color(0.08, 0.08, 0.1, 0.9)
+
+[node name="GreyboxOutro" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7oo38")
+hero_script = "* Citizen, \"Thank you for saving me!\"
+* Citizen, \"You're a real hero!\"
+* Silver Spoon, \"what are you doing? you're wasting time!\"
+* Hero, \"i was just trying to help...\"
+* Fellow hero, \"next time, just fight the baddies first. then they won't have time to put the civilians in danger in the first place.\"
+* Hero, \"if you say so...\"
+* Later that day...
+* Hero, \"why was Silver Spoon so hard on me? i thought i did good...\"
+* Hero, \"well, maybe he'll come around if i keep working on it\""
+neutral_script = "* Citizen, \"Thank you for saving me!\"
+* Citizen, \"You're a real hero!\"
+* Hero, \"i don't feel like one. i don't feel like i got everyone here.\"
+* Silver Spoon, \"thanks for your help, rookie.\"
+* Hero, \"did everyone at least make it out alive?\"
+* Silver Spoon, \"don't worry about it, rookie. you've done your part.\"
+* Silver Spoon, \"i'll take care of the rest.\"
+* Later that day...
+* Hero, \"i have to try harder if i want to be as good as Silver Spoon.\""
+dark_script = "* Citizen, \"where were you?! i barely made it out alive!\"
+* Citizen, \"where's my son?!\"
+* Silver Spoon, \"look, we had to take out the bad guys first. you'd all be gone if we didn't stop them.\"
+* Silver Spoon, \"good work, Rookie. if there are any more survivors, Rescue Team will pick them up.\"
+* Hero, \"yeah, whatever.\"
+* Later that day...
+* Hero, \"that was pretty easy.\"
+* Hero, \"i hope there's more crime around. i could use the training.\""
+speakers = Array[ExtResource("3_speaker")]([SubResource("Resource_citizen"), SubResource("Resource_hero"), SubResource("Resource_silver"), SubResource("Resource_fellow")])
+
+[node name="Background" type="TextureRect" parent="."]
+modulate = Color(0.45, 0.45, 0.5, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_3tpbe")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Page" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Panels" type="GridContainer" parent="Page"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 3
+theme_override_constants/v_separation = 3
+columns = 3
+
+[node name="Panel1" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel2" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel3" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel4" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel5" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel6" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel7" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel8" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Panel9" parent="Page/Panels" instance=ExtResource("6_panel")]
+layout_mode = 2
+
+[node name="Prompt" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -13.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
+theme_override_font_sizes/font_size = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_prompt")
+text = "NEXT >"
+horizontal_alignment = 2
