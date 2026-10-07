@@ -1,0 +1,83 @@
+[gd_scene load_steps=3 format=3 uid="uid://bv1mr5evyteyx"]
+
+[ext_resource type="Texture2D" uid="uid://bakq4d3aa0ddg" path="res://assets/background/sindrehsoereide-comicbook-4785537_640.jpg" id="1_3tpbe"]
+[ext_resource type="Script" uid="uid://2g6ahlnq6ddo" path="res://src/cutscenes/cutscene.gd" id="1_7oo38"]
+
+[node name="Cutscene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7oo38")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 470.0
+offset_bottom = 640.0
+scale = Vector2(0.92004657, 0.38039505)
+texture = ExtResource("1_3tpbe")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 10.0
+offset_right = 147.2
+offset_bottom = 81.8
+
+[node name="Panel2" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 154.0
+offset_top = 10.0
+offset_right = 278.2
+offset_bottom = 81.8
+
+[node name="Panel3" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 285.0
+offset_top = 10.0
+offset_right = 409.2
+offset_bottom = 81.8
+
+[node name="Panel4" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 84.0
+offset_right = 147.2
+offset_bottom = 155.8
+
+[node name="Panel5" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 154.0
+offset_top = 84.0
+offset_right = 278.2
+offset_bottom = 155.8
+
+[node name="Panel6" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 285.0
+offset_top = 84.0
+offset_right = 409.2
+offset_bottom = 155.8
+
+[node name="Panel7" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 159.0
+offset_right = 147.2
+offset_bottom = 230.8
+
+[node name="Panel8" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 154.0
+offset_top = 159.0
+offset_right = 278.2
+offset_bottom = 230.8
+
+[node name="Panel9" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 285.0
+offset_top = 159.0
+offset_right = 409.2
+offset_bottom = 230.8

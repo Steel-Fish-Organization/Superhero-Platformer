@@ -1,9 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=7 format=3 uid="uid://c0fr8n6swlbwq"]
 
-[ext_resource type="Script" path="res://src/rescue/civilian.gd" id="1_civ"]
-[ext_resource type="AudioStream" path="res://assets/8Bit-Sounds/SFX - Player/Interact.mp3" id="2_rescue"]
-[ext_resource type="AudioStream" path="res://assets/8Bit-Sounds/SFX - Environment/Siren Loop.mp3" id="3_danger"]
-[ext_resource type="Script" path="res://src/rescue/civilian_hitbox.gd" id="4_hit"]
+[ext_resource type="Script" uid="uid://bkawhkkvw3lpa" path="res://src/rescue/civilian.gd" id="1_civ"]
+[ext_resource type="AudioStream" uid="uid://c6n1jrvdqi8dg" path="res://assets/8Bit-Sounds/SFX - Player/Interact.mp3" id="2_rescue"]
+[ext_resource type="AudioStream" uid="uid://beww5bes048xd" path="res://assets/8Bit-Sounds/SFX - Environment/Siren Loop.mp3" id="3_danger"]
+[ext_resource type="Script" uid="uid://ctc15j16ym7vh" path="res://src/rescue/civilian_hitbox.gd" id="4_hit"]
 
 [sub_resource type="RectangleShape2D" id="Rect_reach"]
 size = Vector2(28, 26)

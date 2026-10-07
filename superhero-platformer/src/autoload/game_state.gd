@@ -74,6 +74,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not OS.is_debug_build() or not (event is InputEventKey) or not event.is_pressed() or event.is_echo():
 		return
 	match (event as InputEventKey).keycode:
+		KEY_ESCAPE:
+			print("Quit game")
+			get_tree().quit()
 		KEY_F1:
 			grant_all()
 			print("[GameState] granted every upgrade: ", unlocked)
