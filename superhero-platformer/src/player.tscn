@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=47 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -18,7 +18,15 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wihxi"]
 atlas = ExtResource("7_fxwnc")
-region = Rect2(120, 32, 24, 32)
+region = Rect2(96, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xmutw"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(144, 96, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hc2cd"]
 atlas = ExtResource("7_fxwnc")
@@ -36,9 +44,17 @@ region = Rect2(72, 0, 24, 32)
 atlas = ExtResource("7_fxwnc")
 region = Rect2(96, 0, 24, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_2uuf1"]
 atlas = ExtResource("7_fxwnc")
-region = Rect2(72, 32, 24, 32)
+region = Rect2(24, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_undrb"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5hg2y"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 96, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_atx3q"]
 atlas = ExtResource("7_fxwnc")
@@ -105,8 +121,14 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wihxi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4huw0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xmutw")
 }],
-"loop": true,
+"loop": false,
 "name": &"fall",
 "speed": 5.0
 }, {
@@ -129,9 +151,15 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_4huw0")
+"texture": SubResource("AtlasTexture_2uuf1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_undrb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5hg2y")
 }],
-"loop": true,
+"loop": false,
 "name": &"jump",
 "speed": 5.0
 }, {
@@ -219,9 +247,8 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"run"
+animation = &"fall"
 autoplay = "idle"
-frame_progress = 0.2581988
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false
