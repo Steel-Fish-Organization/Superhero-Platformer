@@ -18,13 +18,9 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wihxi"]
 atlas = ExtResource("7_fxwnc")
-region = Rect2(96, 96, 24, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
-atlas = ExtResource("7_fxwnc")
 region = Rect2(120, 96, 24, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_xmutw"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(144, 96, 24, 32)
 
@@ -52,9 +48,13 @@ region = Rect2(24, 96, 24, 32)
 atlas = ExtResource("7_fxwnc")
 region = Rect2(48, 96, 24, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_5hg2y"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_xmutw"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(72, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5hg2y"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 96, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_atx3q"]
 atlas = ExtResource("7_fxwnc")
@@ -124,13 +124,10 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_4huw0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_xmutw")
 }],
-"loop": false,
+"loop": true,
 "name": &"fall",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -155,13 +152,21 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_undrb")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xmutw")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_5hg2y")
 }],
 "loop": false,
-"name": &"jump",
-"speed": 5.0
+"name": &"jump-to-fall",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -247,8 +252,7 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"fall"
-autoplay = "idle"
+animation = &"jump"
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false

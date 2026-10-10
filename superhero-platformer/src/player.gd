@@ -1058,7 +1058,10 @@ func _update_sprite() -> void:
 	elif velocity.y < 0:
 		anim_spr.animation = "jump"
 	elif velocity.y > 0:
-		anim_spr.animation = "fall"
+		# transition to "jump-to-fall" at start of fall
+		# but only if "fall" animtion is not already playing
+		if anim_spr.animation != "fall":
+			anim_spr.animation = "jump-to-fall"
 	else:
 		if _input_x() != 0:
 			print("facing: ", facing)
@@ -1096,7 +1099,11 @@ func _on_animated_sprite_animation_changed() -> void:
 	pass # Replace with function body.
 
 func _on_animated_sprite_animation_finished() -> void:
-	pass # Replace with function body.
+	# when the "jump-to-fall" animation finishes,
+	# swtich to fall animation
+	#print("time to fall!")
+	if anim_spr.animation == "jump-to-fall":
+		anim_spr.play("fall")
 
 func _on_animated_sprite_animation_looped() -> void:
 	pass # Replace with function body.
