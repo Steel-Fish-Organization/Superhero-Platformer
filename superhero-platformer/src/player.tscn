@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=51 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://1c1iuft6563" path="res://assets/greybox/player.png" id="2_sheet"]
@@ -15,6 +15,22 @@
 [ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
 [ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
 [ext_resource type="AudioStream" uid="uid://brbtf38ya7bux" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 1.mp3" id="13_hc2cd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_evmln"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 128, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ipv0d"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 128, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fe344"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 128, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6jnrl"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 128, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wihxi"]
 atlas = ExtResource("7_fxwnc")
@@ -118,6 +134,23 @@ region = Rect2(192, 32, 24, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wihxi"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_evmln")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ipv0d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fe344")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6jnrl")
+}],
+"loop": false,
+"name": &"duck",
+"speed": 20.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wihxi")
@@ -252,7 +285,7 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"jump"
+animation = &"duck"
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false

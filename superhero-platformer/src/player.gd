@@ -1051,10 +1051,14 @@ func _set_shape(is_sliding: bool) -> void:
 
 
 func _update_sprite() -> void:
-	# Crouching and dashing share the slide's low frame for now -- there's no
-	# crouch or dash art yet.
-	if sliding or crouching or dashing:
+	# Dashing shares the slide's low frame for now -- 
+	# there's no dash art yet.
+	if sliding or dashing:
 		anim_spr.animation = "slide"
+	elif crouching:
+		if anim_spr.animation != "duck":
+			# play duck animation if it's not already playing
+			anim_spr.animation = "duck"
 	elif velocity.y < 0:
 		anim_spr.animation = "jump"
 	elif velocity.y > 0:
