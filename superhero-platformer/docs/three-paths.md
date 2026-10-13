@@ -400,12 +400,47 @@ Ordered roughly by how much the design above depends on them.
 | **Hazards** | the third way civilians die (§2), and level variety | reference has `hazard.gd` |
 | **Endings** | M4; what the path history is *for* | reference has `ending.gd` |
 | **Menus, pause, game over** | a game you can start and lose | reference has all three |
+| **Comic outros** | **built** — see below | `src/cutscenes/`, one script per outcome |
 | **Save slots** | one save file today, no file select | reference has `save_system.gd` with three slots |
 | **Lives and continues** | death currently just respawns you at a checkpoint | |
 | **Stage select** | branching may not want one at all — the graph decides where you go | decide before building |
 | **Enemies targeting civilians** | would turn dark from neglect into something the villain does | open question in §9 |
 | **A result screen** | the outcome is a HUD banner for two seconds | |
 | **Music** | the audio pack has four tracks sitting unused | |
+
+### Added since this plan was written
+
+**Stage outros** (`src/cutscenes/`, by HipolitoThe3rd). A comic page that plays
+between stages, with a separate script for hero, neutral and dark — so the
+outcome is now *told* as well as counted. `StageGoal.outro` points at one;
+`SceneRouter.play_cutscene()` plays it and goes on to the next stage when it
+ends. The greybox has one: the citizen thanks you on a hero run and asks where
+you were on a dark one.
+
+That answers two things this document listed as missing. The "result screen" is
+now a comic page rather than a HUD banner, and **M4's endings have their
+renderer already** — an ending is a cutscene the run's history picks instead of
+one the outcome picks.
+
+Worth knowing: the player's `preview_outcome` export means each script can be
+checked with F6 without playing a stage to reach it.
+
+**Animation** (same author): a `duck` animation for crouching, and a
+`jump-to-fall` transition that plays before `fall`. Dashing still borrows the
+slide frame.
+
+Those arrived with a bug worth remembering: `anim_spr.animation = "x"` picks an
+animation **without starting playback**, and only walking and running called
+`play()`. So the sprite animated only while you were moving — ducking from a
+standstill froze on frame 0, idle never moved, and a standing jump never reached
+its fall animation. Every state now goes through `_animate()` (looping) or
+`_animate_once()` (duck and the jump-to-fall hand-off), and
+`tools/tests/test_animation.gd` checks that each one plays.
+
+**Design change, not recorded anywhere else:** every civilian in the greybox now
+has a 5-second danger clock, where before only Juno had one (14 seconds). That
+makes the hero path markedly harder and dark much easier to fall into, and it's
+worth a playtest pass to confirm it's the intended balance.
 
 ### Known rough edges
 
@@ -416,3 +451,13 @@ Ordered roughly by how much the design above depends on them.
   longer history than the run actually was. Same fix.
 - Nothing shows which path you arrived on while you play it — you can only tell
   from who's there.
+- `levels/greybox.tscn` and `tools/gen_level.gd` have diverged: the scene's outro
+  hookup and its 5-second danger clocks exist only in the scene. Running the
+  generator would silently undo both.
+- `tools/tests/test_rescue.gd` fails one check ("only one of them is on a danger
+  timer") because of that same change. The test encodes the old design, not a
+  bug in the game.
+- The `quit` input action added to project.godot isn't read by anything; Escape
+  is handled directly in `GameState`, and only in debug builds.
+- `src/cutscenes/sample_stage_outro.tscn` looks like a scratch copy of the
+  greybox outro; worth deleting or marking as the template.

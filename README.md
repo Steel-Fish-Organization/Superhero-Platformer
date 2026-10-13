@@ -19,6 +19,9 @@ Two control layouts, both live at once:
 | interact / rescue | **E** | **E** |
 | next weapon | **Q** | **Q** |
 | respawn | **R** | **R** |
+| quit (debug builds) | **Esc** | **Esc** |
+
+In a cutscene, jump, fire, interact or **Enter** advances the page.
 
 Gamepad, twin-stick style:
 
@@ -93,6 +96,7 @@ src/weapon.gd         the drag-and-drop weapon resource                ~50
 src/checkpoint.gd     moves your respawn point forward                 ~50
 src/blast.gd          the explosion a bomb leaves behind               ~50
 
+src/cutscenes/        comic-page outros: cutscene.gd, comic_panel.gd      ~290
 src/weapons/          pulse.tres, bomb.tres, ricochet.tres  <- drag these around
 src/projectiles/      the scenes those weapons fire
 src/fx/               enemy death explosion
@@ -353,6 +357,34 @@ only act while they're on screen, as in Mega Man.
 To add a new type, extend `Enemy` and fill in `_behaviour(delta)` — set
 `velocity`, and `move_and_slide` is called for you.
 
+## Cutscenes
+
+A stage can end with a **comic page** that tells what just happened. Each outro
+holds three scripts — hero, neutral and dark — and plays whichever one the run
+earned. `src/cutscenes/greybox_outro.tscn` is the worked example; hook one onto a
+level by setting `outro` on its `StageGoal`.
+
+Scripts are written the way dialogue gets drafted:
+
+```
+* Citizen, "Thank you for saving me!"
+* Later that day...
+```
+
+`Name, "words"` is someone speaking and fills a panel with their portrait and a
+speech bubble; anything else becomes a narration caption. The leading `*` is
+optional. Faces come from the `speakers` array — a `CutsceneSpeaker` has a name
+the script matches by (case doesn't matter), a portrait, a tint and a flip, so
+one sprite sheet can stand in for several characters.
+
+Each line fills the next panel. When the page runs out of panels it clears and
+carries on, so a script can be any length. **Jump, fire, interact or Enter**
+finishes the line being typed, then moves to the next one. `chars_per_second`
+sets the typewriter speed; 0 puts each line up whole.
+
+To write one, open the cutscene scene and press **F6** to play it on its own —
+`preview_outcome` picks which of the three scripts you see.
+
 ## Charge tiers
 
 Mega Man 4+ rules: pressing fire shoots immediately **and** starts charging;
@@ -388,6 +420,7 @@ godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 | `test_outcomes` | hero/neutral/dark runs, the stage goal, who can hurt a civilian |
 | `test_graph` | where each outcome leads, and that every stage it names exists |
 | `test_populations` | the same stage built three ways, one per arriving path |
+| `test_animation` | which animation plays per state, and that it actually plays |
 
 Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
 matters: it makes one frame exactly one physics tick, so the frame numbers in a
@@ -405,6 +438,12 @@ godot --headless --path . --script tools/gen_stubs.gd    # rebuilds the 7 stub s
 
 The level generator **overwrites** `levels/greybox.tscn` — handy while the level
 is throwaway, but stop using it once you start editing the scene in the editor.
+
+> **That point has now passed.** `greybox.tscn` has hand edits the generator
+> doesn't know about: the outro hooked onto the StageGoal, and every civilian's
+> `danger_time` set to 5 seconds. Running `gen_level.gd` today would throw both
+> away. Either port those two changes into the generator, or retire it and edit
+> the scene by hand from here on.
 
 ## Where this is going
 

@@ -1051,36 +1051,30 @@ func _set_shape(is_sliding: bool) -> void:
 
 
 func _update_sprite() -> void:
-	# Dashing shares the slide's low frame for now -- 
-	# there's no dash art yet.
+	# Dashing shares the slide's low frame for now -- there's no dash art yet.
 	if sliding or dashing:
-		anim_spr.animation = "slide"
+		_animate(&"slide")
 	elif crouching:
-		if anim_spr.animation != "duck":
-			# play duck animation if it's not already playing
-			anim_spr.animation = "duck"
+		_animate_once(&"duck")
 	elif velocity.y < 0:
-		anim_spr.animation = "jump"
+		_animate(&"jump")
 	elif velocity.y > 0:
-		# transition to "jump-to-fall" at start of fall
-		# but only if "fall" animtion is not already playing
-		if anim_spr.animation != "fall":
-			anim_spr.animation = "jump-to-fall"
+		# jump-to-fall hands over to the falling loop when it ends -- see
+		# _on_animated_sprite_animation_finished.
+		if anim_spr.animation != &"fall":
+			_animate_once(&"jump-to-fall")
 	else:
-		if _input_x() != 0:
-			print("facing: ", facing)
-			if (_input_x() > 0 and facing == 1) or (_input_x() < 0 and facing == -1):
-				if Input.is_action_pressed("run"):
-					anim_spr.play("run")
-				else:
-					anim_spr.play("walk")
-			elif (_input_x() > 0 and facing == -1) or (_input_x() < 0 and facing == 1):
-				if Input.is_action_pressed("run"):
-					anim_spr.play_backwards("run")
-				else:
-					anim_spr.play_backwards("walk")
+		var input_x := _input_x()
+		if input_x == 0.0:
+			_animate(&"idle")
 		else:
-			anim_spr.animation = "idle"
+			# Walking against the way you're aiming plays the cycle in reverse,
+			# so backing away from a fight reads as backing away.
+			var cycle: StringName = &"run" if Input.is_action_pressed(&"run") else &"walk"
+			if int(input_x) == facing:
+				anim_spr.play(cycle)
+			else:
+				anim_spr.play_backwards(cycle)
 	anim_spr.flip_h = (_slide_dir if sliding else facing) < 0
 
 	# Charging flashes the hero brighter as each tier is reached.
@@ -1097,6 +1091,25 @@ func _update_sprite() -> void:
 	
 	
 	
+
+## A looping animation. Safe to call every frame: play() only restarts an
+## animation that has run to its end, which a looping one never does.
+##
+## Setting `anim_spr.animation` instead would NOT start playback. That's what
+## used to freeze the duck on its first frame: the sprite was only ever playing
+## if you happened to be walking at the time, since walk and run were the only
+## states that called play().
+func _animate(cycle: StringName) -> void:
+	anim_spr.play(cycle)
+
+
+## A one-shot animation -- duck, and the jump-to-fall hand-off. Started only when
+## it isn't already the current one, so it plays through once and holds its last
+## frame rather than restarting every frame.
+func _animate_once(cycle: StringName) -> void:
+	if anim_spr.animation != cycle:
+		anim_spr.play(cycle)
+
 
 ## SIGNALS
 func _on_animated_sprite_animation_changed() -> void:
