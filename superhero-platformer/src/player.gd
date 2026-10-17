@@ -1056,6 +1056,11 @@ func _update_sprite() -> void:
 		_animate(&"slide")
 	elif crouching:
 		_animate_once(&"duck")
+	elif climbing:
+		if Input.is_action_pressed("move_down") or Input.is_action_pressed("move_up"):
+			_animate(&"climb")
+		else:
+			_animate(&"climb_idle")
 	elif velocity.y < 0:
 		_animate(&"jump")
 	elif velocity.y > 0:
