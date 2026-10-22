@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=65 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dbg11fvgonjfx" path="res://src/weapon.gd" id="3_weapon"]
@@ -14,6 +14,42 @@
 [ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
 [ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
 [ext_resource type="AudioStream" uid="uid://brbtf38ya7bux" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 1.mp3" id="13_hc2cd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rdcjo"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6iaar"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3mook"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(144, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4jat8"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_am7v0"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iv5d3"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jouj7"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(168, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jr7q6"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(192, 224, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ajvfd"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(216, 224, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fxwnc"]
 atlas = ExtResource("7_fxwnc")
@@ -157,6 +193,48 @@ region = Rect2(192, 32, 24, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_wihxi"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rdcjo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6iaar")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3mook")
+}],
+"loop": true,
+"name": &"atk_charge",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_4jat8")
+}, {
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_am7v0")
+}, {
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_iv5d3")
+}],
+"loop": false,
+"name": &"atk_ready",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_jouj7")
+}, {
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_jr7q6")
+}, {
+"duration": 0.17,
+"texture": SubResource("AtlasTexture_ajvfd")
+}],
+"loop": false,
+"name": &"atk_release",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_fxwnc")
@@ -339,7 +417,7 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"climb_idle"
+animation = &"atk_release"
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false

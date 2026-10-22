@@ -173,6 +173,9 @@ var _jump_cut_used := false
 var _fire_cooldown := 0.0
 var _charge := 0.0
 var _charging := false
+var _fire_down := false
+## Shot waiting for atk_release to finish before it leaves the muzzle.
+var _pending_shot: Weapon = null
 var _ladder: Area2D = null
 ## What we're hanging from: the world point the hands hold, the top of the
 ## platform (INF for a hook, which has no top to climb onto), and the hook node.
@@ -723,6 +726,8 @@ func next_weapon() -> void:
 		return
 	weapon_index = wrapi(weapon_index + 1, 0, weapons.size())
 	_charging = false
+	_fire_down = false
+	_pending_shot = null
 	_charge = 0.0
 
 
@@ -734,25 +739,35 @@ func _handle_firing(delta: float) -> void:
 	if weapon == null:
 		return
 
-	# Mega Man 4+ rule: pressing fire shoots immediately AND starts charging.
-	# Releasing after passing a threshold fires that tier instead.
+	# A pending shot whose release animation can no longer play (jumped, got
+	# hurt...) leaves right away instead of being lost.
+	if _pending_shot and not _can_play_attack_anim():
+		_fire(_pending_shot)
+		_pending_shot = null
+
+	# Nothing fires on press: the shot leaves on release, after atk_release ends
+	# (or immediately when that animation can't play).
 	if Input.is_action_just_pressed(&"fire"):
 		$SFX/SndCharge.stop()
-		_fire(weapon)
-		if weapon.can_charge():
-			_charging = true
-			_charge = 0.0
-	elif _charging and Input.is_action_pressed(&"fire"):
-		_charge += delta * charge_rate
-		if $SFX/SndCharge.playing == false and _charge > 0.5:
-			$SFX/SndCharge.play()
-	elif _charging:
-		$SFX/SndCharge.stop()
-		_charging = false
-		var tier := weapon.tier_for(_charge)
-		if tier != weapon:
-			_fire(tier)
+		_fire_down = true
+		_pending_shot = null
+		_charging = weapon.can_charge()
 		_charge = 0.0
+	elif _fire_down and Input.is_action_pressed(&"fire"):
+		if _charging:
+			_charge += delta * charge_rate
+			if $SFX/SndCharge.playing == false and _charge > 0.5:
+				$SFX/SndCharge.play()
+	elif _fire_down:
+		$SFX/SndCharge.stop()
+		var tier := weapon.tier_for(_charge) if _charging else weapon
+		_fire_down = false
+		_charging = false
+		_charge = 0.0
+		if _can_play_attack_anim():
+			_pending_shot = tier
+		else:
+			_fire(tier)
 
 
 func _fire(weapon: Weapon) -> void:
@@ -980,6 +995,8 @@ func respawn() -> void:
 	_regrab = 0.0
 	_last_grab = 0.0
 	_charging = false
+	_fire_down = false
+	_pending_shot = null
 	_charge = 0.0
 	_hurt_timer = 0.0
 	_invuln = 0.0
@@ -1071,7 +1088,15 @@ func _update_sprite() -> void:
 	else:
 		var input_x := _input_x()
 		if input_x == 0.0:
-			_animate(&"idle")
+			if _pending_shot:
+				# Release cancels atk_ready / atk_charge.
+				_animate_once(&"atk_release")
+			elif _fire_down:
+				# atk_ready hands over to atk_charge when it finishes.
+				if anim_spr.animation != &"atk_ready" and anim_spr.animation != &"atk_charge":
+					anim_spr.play(&"atk_ready")
+			else:
+				_animate(&"idle")
 		else:
 			# Walking against the way you're aiming plays the cycle in reverse,
 			# so backing away from a fight reads as backing away.
@@ -1096,6 +1121,12 @@ func _update_sprite() -> void:
 	
 	
 	
+
+## True in the plain standing state, the only one with attack animations.
+func _can_play_attack_anim() -> bool:
+	return not (frozen or hanging or climbing or sliding or dashing or crouching) \
+		and _hurt_timer <= 0.0 and velocity.y == 0.0 and _input_x() == 0.0
+
 
 ## A looping animation. Safe to call every frame: play() only restarts an
 ## animation that has run to its end, which a looping one never does.
@@ -1126,6 +1157,13 @@ func _on_animated_sprite_animation_finished() -> void:
 	#print("time to fall!")
 	if anim_spr.animation == "jump-to-fall":
 		anim_spr.play("fall")
+	if anim_spr.animation == "atk_ready" and _fire_down:
+		_animate("atk_charge")
+	elif anim_spr.animation == "atk_release":
+		if _pending_shot:
+			_fire(_pending_shot)
+			_pending_shot = null
+		_animate("idle")
 
 func _on_animated_sprite_animation_looped() -> void:
 	pass # Replace with function body.
