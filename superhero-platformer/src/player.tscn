@@ -1,8 +1,8 @@
-[gd_scene load_steps=65 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=81 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dbg11fvgonjfx" path="res://src/weapon.gd" id="3_weapon"]
-[ext_resource type="Resource" path="res://src/weapons/pulse.tres" id="4_pulse"]
+[ext_resource type="Resource" uid="uid://bdbvrsa4fgj3s" path="res://src/weapons/pulse.tres" id="4_pulse"]
 [ext_resource type="Resource" path="res://src/weapons/bomb.tres" id="5_bomb"]
 [ext_resource type="Resource" path="res://src/weapons/ricochet.tres" id="6_rico"]
 [ext_resource type="Texture2D" uid="uid://blqo4pv1dvw0r" path="res://assets/sprites/player_sprite_rough_wip.png" id="7_fxwnc"]
@@ -14,6 +14,7 @@
 [ext_resource type="AudioStream" uid="uid://bkjknmnvg5hq5" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 2.mp3" id="11_nic3v"]
 [ext_resource type="AudioStream" uid="uid://ecy7a4owf7j" path="res://assets/8Bit-Sounds/SFX - Player/Player Damage.mp3" id="12_dxtnc"]
 [ext_resource type="AudioStream" uid="uid://brbtf38ya7bux" path="res://assets/8Bit-Sounds/SFX - Player/Walk Soft 1.mp3" id="13_hc2cd"]
+[ext_resource type="AudioStream" uid="uid://5mf5ykrpgk46" path="res://assets/8Bit-Sounds/SFX - Enemies/Enemy Death.mp3" id="15_hc2cd"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rdcjo"]
 atlas = ExtResource("7_fxwnc")
@@ -75,6 +76,50 @@ region = Rect2(120, 192, 24, 32)
 atlas = ExtResource("7_fxwnc")
 region = Rect2(144, 192, 24, 32)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_oxmr1"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_no1v1"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tya23"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7s8n5"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jviv6"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(120, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8fb7"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(144, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fclfs"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(168, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sgxq3"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(192, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2e23k"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(216, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c78en"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(240, 288, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4kq1t"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(264, 288, 24, 32)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_evmln"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(24, 128, 24, 32)
@@ -98,6 +143,22 @@ region = Rect2(120, 96, 24, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(144, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_11wc2"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 256, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3efi8"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 256, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_514at"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(72, 256, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smeid"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(96, 256, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hc2cd"]
 atlas = ExtResource("7_fxwnc")
@@ -268,6 +329,44 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_oxmr1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_no1v1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tya23")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7s8n5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jviv6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b8fb7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fclfs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sgxq3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2e23k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c78en")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4kq1t")
+}],
+"loop": false,
+"name": &"die",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_evmln")
 }, {
 "duration": 1.0,
@@ -293,6 +392,23 @@ animations = [{
 "loop": true,
 "name": &"fall",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_11wc2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3efi8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_514at")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smeid")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 12.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -417,7 +533,7 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"atk_release"
+animation = &"idle"
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false
@@ -491,6 +607,9 @@ stream = ExtResource("10_hclnh")
 
 [node name="SndDamage" type="AudioStreamPlayer2D" parent="SFX"]
 stream = ExtResource("12_dxtnc")
+
+[node name="SndDie" type="AudioStreamPlayer2D" parent="SFX"]
+stream = ExtResource("15_hc2cd")
 
 [connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
 [connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]

@@ -154,6 +154,8 @@ var aim_dir := Vector2.RIGHT
 ## Set by the room camera during a screen transition -- input is ignored and the
 ## camera moves the player through the doorway itself.
 var frozen := false
+## Out of health and playing the death animation. Respawns when it finishes.
+var dying := false
 
 var health := 0
 var weapon_index := 0
@@ -255,6 +257,10 @@ func _physics_process(delta: float) -> void:
 
 	if Input.is_action_just_pressed(&"restart") or global_position.y > fall_limit:
 		respawn()
+		return
+
+	if dying:
+		_dying(delta)
 		return
 
 	if frozen:
@@ -864,17 +870,16 @@ func _shoulder() -> Vector2:
 ## was ignored (i-frames, mid-transition), so enemy shots fly on through you
 ## instead of vanishing, as in Mega Man.
 func take_damage(amount: int, from: Node = null) -> bool:
-	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen:
+	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen or dying:
 		return false
-
-	$SFX/SndDamage.play()
 
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	if health <= 0:
-		respawn()
+		_die()
 		return true
 
+	$SFX/SndDamage.play()
 	_hurt_timer = hurt_time
 	_invuln = invuln_time
 	climbing = false
@@ -904,6 +909,38 @@ func _hurt(delta: float) -> void:
 	_hurt_timer -= delta
 	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 	velocity.x = move_toward(velocity.x, 0.0, 240.0 * delta)
+	move_and_slide()
+
+
+## Drops everything and plays the death animation. respawn() runs when it ends
+## -- see _on_animated_sprite_animation_finished.
+func _die() -> void:
+	dying = true
+	if hanging:
+		_release(false)
+	climbing = false
+	dashing = false
+	if (sliding or crouching) and _has_headroom():
+		sliding = false
+		crouching = false
+		_set_shape(false)
+	_hurt_timer = 0.0
+	_invuln = 0.0
+	_charging = false
+	_fire_down = false
+	_pending_shot = null
+	_charge = 0.0
+	$SFX/SndCharge.stop()
+	$SFX/SndDie.play()
+	velocity.x = 0.0
+	anim_spr.visible = true
+	anim_spr.modulate = Color.WHITE
+	anim_spr.play(&"die")
+
+
+## Still falls if killed in mid-air, but takes no input.
+func _dying(delta: float) -> void:
+	velocity.y = minf(velocity.y + gravity * delta, max_fall)
 	move_and_slide()
 
 
@@ -987,6 +1024,7 @@ func respawn() -> void:
 	hanging = false
 	dashing = false
 	frozen = false
+	dying = false
 	_reset_air_moves()
 	_hang_hook = null
 	_hang_surface = INF
@@ -1001,6 +1039,8 @@ func respawn() -> void:
 	_hurt_timer = 0.0
 	_invuln = 0.0
 	_set_shape(false)
+	anim_spr.visible = true
+	anim_spr.play(&"idle")
 	respawned.emit()
 
 
@@ -1069,7 +1109,9 @@ func _set_shape(is_sliding: bool) -> void:
 
 func _update_sprite() -> void:
 	# Dashing shares the slide's low frame for now -- there's no dash art yet.
-	if sliding or dashing:
+	if _hurt_timer > 0.0:
+		_animate_once(&"hurt")
+	elif sliding or dashing:
 		_animate(&"slide")
 	elif crouching:
 		_animate_once(&"duck")
@@ -1155,6 +1197,9 @@ func _on_animated_sprite_animation_finished() -> void:
 	# when the "jump-to-fall" animation finishes,
 	# swtich to fall animation
 	#print("time to fall!")
+	if anim_spr.animation == "die":
+		respawn()
+		return
 	if anim_spr.animation == "jump-to-fall":
 		anim_spr.play("fall")
 	if anim_spr.animation == "atk_ready" and _fire_down:
