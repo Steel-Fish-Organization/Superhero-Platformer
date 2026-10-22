@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://dqkcr8ri1soas"]
 
 [ext_resource type="Script" uid="uid://dtr7ableaea3s" path="res://src/projectile.gd" id="1_p"]
-[ext_resource type="Texture2D" uid="uid://dtyua1dfrigys" path="res://assets/greybox/shot.png" id="2_t"]
+[ext_resource type="Texture2D" uid="uid://blqo4pv1dvw0r" path="res://assets/sprites/player_sprite_rough_wip.png" id="2_t"]
 [ext_resource type="AudioStream" uid="uid://cctw6f5lmb7wy" path="res://assets/8Bit-Sounds/SFX - Weapons/Shots (future guns)/Assault Rifle Shot (future).mp3" id="3_tkddm"]
 
 [sub_resource type="CircleShape2D" id="C"]
@@ -16,6 +16,8 @@ script = ExtResource("1_p")
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2_t")
 hframes = 3
+region_enabled = true
+region_rect = Rect2(240, 224, 72, 32)
 
 [node name="Shape" type="CollisionShape2D" parent="."]
 shape = SubResource("C")

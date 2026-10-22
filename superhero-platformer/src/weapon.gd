@@ -5,7 +5,7 @@ extends Resource
 ## A charge weapon is just a chain: each file describes one tier and points at
 ## the next one through `charged`. So the pulse gun is
 ##
-##     pulse.tres  ->  pulse_mid.tres  ->  pulse_full.tres
+##     pulse.tres  ->  pulse_full.tres
 ##
 ## and a bomb that doesn't charge is one file with `charged` left empty. To try
 ## a new weapon, make a new .tres, point it at a projectile scene, and drop it
