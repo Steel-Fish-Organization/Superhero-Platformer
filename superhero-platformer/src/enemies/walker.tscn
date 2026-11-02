@@ -1,23 +1,122 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=16 format=3 uid="uid://bbao3w4e7r2ti"]
 
-[ext_resource type="Script" path="res://src/enemies/walker.gd" id="1_walker"]
-[ext_resource type="Texture2D" path="res://assets/sprites/enemy_walker.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://bcskck1wevkfr" path="res://src/enemies/walker.gd" id="1_walker"]
+[ext_resource type="Texture2D" uid="uid://bxw7dfjfe1by" path="res://assets/sprites/enemies/smol_larva_bot.png" id="2_ruqfa"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_js772"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oc7bf"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(64, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lo2r6"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(80, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lihsg"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ublvk"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ni11k"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_10p71"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1wo1j"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rypwe"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(64, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o0x73"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(80, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_48c7t"]
+atlas = ExtResource("2_ruqfa")
+region = Rect2(96, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_5nipg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_js772")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oc7bf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lo2r6")
+}],
+"loop": false,
+"name": &"die",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lihsg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ublvk")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ni11k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_10p71")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1wo1j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rypwe")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o0x73")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_48c7t")
+}],
+"loop": true,
+"name": &"patrol",
+"speed": 5.0
+}]
 
 [sub_resource type="RectangleShape2D" id="Rect_walker"]
-size = Vector2(12, 14)
+size = Vector2(14, 8)
 
 [node name="Walker" type="CharacterBody2D"]
 collision_layer = 4
-collision_mask = 1
 script = ExtResource("1_walker")
 max_health = 3
-contact_damage = 3
 
-[node name="Sprite" type="Sprite2D" parent="."]
+[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -8)
-texture = ExtResource("2_tex")
-hframes = 4
+sprite_frames = SubResource("SpriteFrames_5nipg")
+animation = &"patrol"
+autoplay = "patrol"
+frame_progress = 0.5273905
 
 [node name="Shape" type="CollisionShape2D" parent="."]
-position = Vector2(0, -7)
+position = Vector2(0, -4)
 shape = SubResource("Rect_walker")
+
+[connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
+[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]
+[connection signal="animation_looped" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_looped"]

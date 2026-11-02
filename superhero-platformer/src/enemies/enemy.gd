@@ -45,6 +45,7 @@ var _dead := false
 var _woken := false
 
 @onready var sprite: Sprite2D = get_node_or_null(^"Sprite")
+@onready var animated_sprite: AnimatedSprite2D = get_node_or_null(^"AnimatedSprite")
 
 
 func _ready() -> void:

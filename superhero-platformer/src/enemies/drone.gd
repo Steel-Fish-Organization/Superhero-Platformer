@@ -55,3 +55,13 @@ func _behaviour(delta: float) -> void:
 
 func _in_range() -> bool:
 	return sight_range <= 0.0 or distance_to_player() <= sight_range
+
+# SIGNALS
+func _on_sprite_animation_changed() -> void:
+	pass # Replace with function body.
+
+func _on_sprite_animation_finished() -> void:
+	pass # Replace with function body.
+
+func _on_sprite_animation_looped() -> void:
+	pass # Replace with function body.

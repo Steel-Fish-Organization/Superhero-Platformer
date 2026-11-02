@@ -12,7 +12,7 @@ extends Enemy
 var _timer := 0.0
 var _charging := false
 
-
+# CUSTOM FUNCTIONS
 func _on_spawn() -> void:
 	_timer = hop_interval * randf_range(0.4, 1.0)
 
@@ -53,3 +53,20 @@ func _leap() -> void:
 func _animate_air() -> void:
 	if sprite:
 		sprite.frame = 2 if velocity.y < 0.0 else 3
+
+# SIGNALS
+
+
+
+func _on_animated_sprite_animation_changed() -> void:
+	pass # Replace with function body.
+
+
+
+func _on_animated_sprite_animation_finished() -> void:
+	pass # Replace with function body.
+	
+
+
+func _on_animated_sprite_animation_looped() -> void:
+	pass # Replace with function body.

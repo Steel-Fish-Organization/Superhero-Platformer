@@ -1,4 +1,4 @@
-[gd_scene load_steps=81 format=3 uid="uid://crcl3y6pb76dj"]
+[gd_scene load_steps=83 format=3 uid="uid://crcl3y6pb76dj"]
 
 [ext_resource type="Script" uid="uid://dx15tjwshhlu4" path="res://src/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dbg11fvgonjfx" path="res://src/weapon.gd" id="3_weapon"]
@@ -143,6 +143,14 @@ region = Rect2(120, 96, 24, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_4huw0"]
 atlas = ExtResource("7_fxwnc")
 region = Rect2(144, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a1t24"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(48, 96, 24, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hccu6"]
+atlas = ExtResource("7_fxwnc")
+region = Rect2(24, 96, 24, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_11wc2"]
 atlas = ExtResource("7_fxwnc")
@@ -395,6 +403,17 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_a1t24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hccu6")
+}],
+"loop": false,
+"name": &"hang",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_11wc2")
 }, {
 "duration": 1.0,
@@ -533,7 +552,9 @@ weapons = Array[ExtResource("3_weapon")]([ExtResource("4_pulse"), ExtResource("5
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_wihxi")
-animation = &"idle"
+animation = &"hang"
+frame = 1
+frame_progress = 1.0
 
 [node name="SndSlide" type="AudioStreamPlayer2D" parent="."]
 visible = false

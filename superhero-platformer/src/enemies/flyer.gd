@@ -70,3 +70,22 @@ func _swoop() -> void:
 	if distance_to_player() < swoop_range:
 		_swooping = true
 		face_player()
+
+# SIGNALS
+
+
+
+func _on_animated_sprite_animation_changed() -> void:
+	pass # Replace with function body.
+	
+
+
+
+func _on_animated_sprite_animation_finished() -> void:
+	pass # Replace with function body.
+
+
+
+
+func _on_animated_sprite_animation_looped() -> void:
+	pass # Replace with function body.

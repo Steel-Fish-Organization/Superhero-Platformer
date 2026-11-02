@@ -14,7 +14,7 @@ extends Enemy
 var _pause := 0.0
 var _step := 0.0
 
-
+# CUSTOM FUNCTIONS
 func _behaviour(delta: float) -> void:
 	if _pause > 0.0:
 		_pause -= delta
@@ -36,3 +36,13 @@ func _behaviour(delta: float) -> void:
 	if sprite:
 		_step += delta
 		sprite.frame = int(_step * 8.0) % sprite.hframes
+
+# SIGNALS
+func _on_animated_sprite_animation_changed() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_animation_finished() -> void:
+	pass # Replace with function body.
+
+func _on_animated_sprite_animation_looped() -> void:
+	pass # Replace with function body.

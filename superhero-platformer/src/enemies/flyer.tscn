@@ -1,24 +1,159 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=20 format=3 uid="uid://ch6rtqaqnlky1"]
 
-[ext_resource type="Script" path="res://src/enemies/flyer.gd" id="1_flyer"]
-[ext_resource type="Texture2D" path="res://assets/sprites/enemy_flyer.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://boneylbg5qf7d" path="res://src/enemies/flyer.gd" id="1_flyer"]
+[ext_resource type="Texture2D" uid="uid://ccmgw1ji3b1c" path="res://assets/sprites/enemies/angy_wasp_bot.png" id="2_23iik"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mullx"]
+atlas = ExtResource("2_23iik")
+region = Rect2(24, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yiq33"]
+atlas = ExtResource("2_23iik")
+region = Rect2(48, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtnto"]
+atlas = ExtResource("2_23iik")
+region = Rect2(72, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bvy75"]
+atlas = ExtResource("2_23iik")
+region = Rect2(24, 48, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1opat"]
+atlas = ExtResource("2_23iik")
+region = Rect2(48, 48, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_evltg"]
+atlas = ExtResource("2_23iik")
+region = Rect2(72, 48, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_23iik"]
+atlas = ExtResource("2_23iik")
+region = Rect2(96, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_er4e0"]
+atlas = ExtResource("2_23iik")
+region = Rect2(120, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_itxq3"]
+atlas = ExtResource("2_23iik")
+region = Rect2(144, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ahh0i"]
+atlas = ExtResource("2_23iik")
+region = Rect2(24, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q3ifr"]
+atlas = ExtResource("2_23iik")
+region = Rect2(48, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jgw8f"]
+atlas = ExtResource("2_23iik")
+region = Rect2(72, 72, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_47ur3"]
+atlas = ExtResource("2_23iik")
+region = Rect2(24, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vkig2"]
+atlas = ExtResource("2_23iik")
+region = Rect2(48, 0, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7j6xc"]
+atlas = ExtResource("2_23iik")
+region = Rect2(72, 0, 24, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_er4e0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mullx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yiq33")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtnto")
+}],
+"loop": true,
+"name": &"aggro",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bvy75")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1opat")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_evltg")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_23iik")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_er4e0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_itxq3")
+}],
+"loop": false,
+"name": &"die",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ahh0i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q3ifr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jgw8f")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_47ur3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vkig2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7j6xc")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
 
 [sub_resource type="CircleShape2D" id="Circle_flyer"]
-radius = 5.0
 
 [node name="Flyer" type="CharacterBody2D"]
 collision_layer = 4
-collision_mask = 1
 motion_mode = 1
 script = ExtResource("1_flyer")
 max_health = 2
-contact_damage = 3
 use_gravity = false
 
-[node name="Sprite" type="Sprite2D" parent="."]
-texture = ExtResource("2_tex")
-hframes = 4
+[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_er4e0")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="Shape" type="CollisionShape2D" parent="."]
 position = Vector2(0, 1)
 shape = SubResource("Circle_flyer")
+
+[connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
+[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]
+[connection signal="animation_looped" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_looped"]

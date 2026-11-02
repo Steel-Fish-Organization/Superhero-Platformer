@@ -1126,6 +1126,16 @@ func _update_sprite() -> void:
 			_animate(&"climb")
 		else:
 			_animate(&"climb_idle")
+	elif hanging:
+		if _pending_shot:
+			# Release cancels atk_ready / atk_charge.
+			_animate_once(&"atk_release")
+		elif _fire_down:
+			# atk_ready hands over to atk_charge when it finishes.
+			if anim_spr.animation != &"atk_ready" and anim_spr.animation != &"atk_charge":
+				anim_spr.play(&"atk_ready")
+		else:
+			_animate_once(&"hang")
 	elif velocity.y < 0:
 		_animate(&"jump")
 	elif velocity.y > 0:
