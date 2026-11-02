@@ -16,6 +16,7 @@ speed = 400.0
 damage = 6
 lifetime = 2.4
 pierce = 1
+break_radius = 14.0
 
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2_t")

@@ -373,6 +373,12 @@ func has_ability(id: StringName) -> bool:
 	return _abilities.has(id)
 
 
+## The hook being hung from, or null. A hook switch watches this to know when
+## someone's weight is on it.
+func hanging_from() -> Node:
+	return _hang_hook if hanging else null
+
+
 func _air_jumps_allowed() -> int:
 	return air_jumps if has_ability(&"double_jump") else 0
 

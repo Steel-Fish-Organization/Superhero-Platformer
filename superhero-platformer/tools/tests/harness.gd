@@ -135,6 +135,14 @@ func place(pos: Vector2) -> void:
 	player.respawned.emit()
 
 
+## Fires the equipped weapon this instant, skipping the press-hold-release and
+## the attack animation the real input goes through. Suites that are about where
+## a shot goes use this; the firing model itself is test_combat's business.
+func shoot_now() -> void:
+	player._fire_cooldown = 0.0
+	player._fire(player.current_weapon())
+
+
 func live_shots() -> Array:
 	return player._shots.filter(func(shot): return is_instance_valid(shot))
 

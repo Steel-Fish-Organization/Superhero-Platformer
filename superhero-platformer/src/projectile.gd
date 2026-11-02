@@ -35,6 +35,14 @@ extends Area2D
 ## Fires the impact scene even when it just times out, not only on a hit.
 @export var impact_on_expire := false
 
+@export_group("Breaking tiles")
+## Whether this shot can clear tiles flagged `breakable`. Enemy fire leaves the
+## level alone by default.
+@export var breaks_tiles := true
+## 0 takes out the single tile that was hit. A charged shot or an explosion sets
+## this to clear everything breakable within the radius, in pixels.
+@export var break_radius := 0.0
+
 @export_group("Side")
 ## Flips the collision layers so enemies can fire this same projectile.
 @export var hostile := false
@@ -140,12 +148,28 @@ func _move(step: Vector2) -> void:
 		return
 
 	global_position = hit.position - step.normalized()
+
+	# A wall you can shoot away. The hit point sits on the tile's face, so look a
+	# whisker further in to find the tile itself rather than the empty cell in
+	# front of it.
+	if breaks_tiles and _break_tiles_at(hit["position"] + heading):
+		_die(true)
+		return
+
 	if _bounces_left <= 0:
 		_die(true)
 		return
 	_bounces_left -= 1
 	velocity = velocity.bounce(hit.get("normal", Vector2.UP)) * bounciness
 	direction = velocity.normalized()
+
+
+## Asks the level to break what it can at this point. True when something went,
+## which is what tells the shot it hit a wall worth dying on rather than bouncing
+## off. Levels without a DestructibleTiles node always answer no.
+func _break_tiles_at(point: Vector2) -> bool:
+	var tiles := get_tree().get_first_node_in_group(&"breakables")
+	return tiles != null and tiles.shatter(point, break_radius) > 0
 
 
 ## True for the platforms shots are allowed through: one-way tiles, and one-way

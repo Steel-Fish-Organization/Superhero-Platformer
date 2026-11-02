@@ -15,6 +15,7 @@ script = ExtResource("1_p")
 speed = 330.0
 damage = 3
 lifetime = 2.2
+break_radius = 9.0
 
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2_t")

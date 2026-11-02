@@ -3,6 +3,8 @@ extends Area2D
 ## its frames, then removes itself.
 
 @export var damage := 4
+## Breakable tiles within this of the centre go up with it. 0 leaves walls alone.
+@export var break_radius := 14.0
 @export var frames_per_second := 18.0
 ## Set by the projectile that spawned it, so an enemy bomb hurts the player.
 @export var hostile := false
@@ -32,6 +34,12 @@ func _ready() -> void:
 	body_entered.connect(_damage)
 	# Civilians are areas rather than bodies.
 	area_entered.connect(_damage)
+
+	# An explosion takes the wall with it, if the wall is the breakable sort.
+	if break_radius > 0.0 and not hostile:
+		var tiles := get_tree().get_first_node_in_group(&"breakables")
+		if tiles:
+			tiles.shatter.call_deferred(global_position, break_radius)
 
 
 func _process(delta: float) -> void:

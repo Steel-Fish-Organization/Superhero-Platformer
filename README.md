@@ -357,6 +357,55 @@ only act while they're on screen, as in Mega Man.
 To add a new type, extend `Enemy` and fill in `_behaviour(delta)` — set
 `velocity`, and `move_and_slide` is called for you.
 
+## The workshop
+
+`levels/workshop.tscn` is a bench for the two newest toys. It isn't in the stage
+graph and has no exit: open it and press **F6**. Two screens — shooting on the
+left, machinery on the right.
+
+### Breakable tiles
+
+Paint any tile with the **`breakable`** custom data flag ticked (tile 6 in the
+greybox set, the pale cracked brick) and `src/level/destructible_tiles.gd` lets
+shots clear it. A plain shot takes the one tile it hits; a charged shot carries a
+`break_radius` and opens a hole; a bomb's blast does the same. Solid rock is
+untouched, and enemy fire leaves the level alone (`breaks_tiles = false` on
+`enemy_shot.tscn`).
+
+Drop a `DestructibleTiles` node into a level beside its TileMapLayer, the way
+Ladders works. Worth knowing:
+
+| Knob | |
+| --- | --- |
+| `hits_to_break` | shots per tile. 1 is a Mega Man block; raise it for a wall that takes a few |
+| `regrow_after` | seconds until a broken tile comes back. 0 leaves the hole for good (the workshop uses 8, so the bench resets itself) |
+| `debris` | what to leave behind — any scene, placed at the tile's centre |
+
+Levels without one of these nodes behave exactly as before: `projectile.gd` asks
+the `breakables` group and gets no answer.
+
+### Hook switches and machinery
+
+A **hook switch** (`src/machines/hook_switch.tscn`) is a hook you hang from to
+throw a switch: jump into it, your weight drags the handle down, and the hero
+rides it. `momentary` decides what kind it is — a latch that stays where you left
+it, or a deadman's handle that only holds while you're hanging on it.
+
+Machines name a **`channel`**; every switch on that channel drives them. No node
+paths to keep in step, so one switch can run a roomful of machines, and anything
+can be copied or moved without re-linking.
+
+| Machine | Does |
+| --- | --- |
+| `moving_platform.tscn` | runs a `travel` leg back and forth while powered, and carries whoever's standing on it |
+| `powered_door.tscn` | slides out of the way while powered — set `inverted` for a gate that shuts instead |
+| `ferris_wheel.tscn` | a ring of `cars` going round, each staying level for riding |
+
+Every machine takes `inverted` (power stops it rather than starts it) and
+`always_on` (runs with no switch at all). The workshop has one of each: channel
+**A** is a latch driving a lift, a slider, a door and the wheel; channel **B** is
+a deadman's handle holding a gate shut.
+
 ## Cutscenes
 
 A stage can end with a **comic page** that tells what just happened. Each outro
@@ -421,6 +470,8 @@ godot --headless --fixed-fps 60 --path . --script tools/tests/test_hanging.gd
 | `test_graph` | where each outcome leads, and that every stage it names exists |
 | `test_populations` | the same stage built three ways, one per arriving path |
 | `test_animation` | which animation plays per state, and that it actually plays |
+| `test_destructible` | one tile per shot, a hole per charged shot, rock that survives |
+| `test_machines` | switches, platforms, doors and the wheel, on both channels |
 
 Each prints PASS/FAIL per check and a failure count at the end. `--fixed-fps 60`
 matters: it makes one frame exactly one physics tick, so the frame numbers in a
@@ -434,6 +485,7 @@ filling in `step(frame)`.
 python tools/gen_greybox.py                              # placeholder art + tileset
 godot --headless --path . --script tools/gen_level.gd    # rebuilds greybox.tscn
 godot --headless --path . --script tools/gen_stubs.gd    # rebuilds the 7 stub stages
+godot --headless --path . --script tools/gen_workshop.gd # rebuilds the workshop bench
 ```
 
 The level generator **overwrites** `levels/greybox.tscn` — handy while the level

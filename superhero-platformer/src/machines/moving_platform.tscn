@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/machines/moving_platform.gd" id="1_mp"]
+
+[sub_resource type="RectangleShape2D" id="Rect_mp"]
+size = Vector2(32, 6)
+
+[node name="MovingPlatform" type="AnimatableBody2D"]
+collision_layer = 1
+collision_mask = 0
+sync_to_physics = true
+script = ExtResource("1_mp")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("Rect_mp")
+
+[node name="Art" type="ColorRect" parent="."]
+offset_left = -16.0
+offset_top = -3.0
+offset_right = 16.0
+offset_bottom = 3.0
+color = Color(0.68, 0.62, 0.42, 1)
+mouse_filter = 2

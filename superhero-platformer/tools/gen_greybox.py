@@ -89,19 +89,24 @@ class Img:
 
 
 # ---------------------------------------------------------------------------
-# tileset: 6 tiles in a row -- solid, solid top, ladder, ladder top, platform, bg
+# tileset: 7 tiles in a row -- solid, solid top, ladder, ladder top, platform,
+# bg, breakable
 # ---------------------------------------------------------------------------
-SOLID_TILES = [0, 1]          # full 8x8 collision box
+TILE_COUNT = 7
+SOLID_TILES = [0, 1, 6]       # full 8x8 collision box
 ONEWAY_TILES = [4]            # top-only collision
 NO_COLLISION = [2, 3, 5]      # ladder + background are visual only
 ## Tiles flagged with the "ladder" custom data layer. src/ladders.gd reads that
 ## flag and builds the climbable volumes, so painting these tiles is all it
 ## takes to place a ladder.
 LADDER_TILES = [2, 3]
+## Tiles flagged "breakable". src/level/destructible_tiles.gd erases these when
+## they're shot; everything else shrugs the hit off.
+BREAKABLE_TILES = [6]
 
 
 def build_tiles():
-    img = Img(TILE * 6, TILE)
+    img = Img(TILE * TILE_COUNT, TILE)
 
     def cell(i):
         return i * TILE
@@ -136,22 +141,35 @@ def build_tiles():
     img.rect(cell(5), 0, 8, 1, "bg_lt")
     img.rect(cell(5), 0, 1, 8, "bg_lt")
 
+    # 6: breakable block -- a lighter brick with a crack through it, so it reads
+    #    as "shoot me" against the solid rock next to it
+    img.rect(cell(6), 0, 8, 8, "rock_lt")
+    img.rect(cell(6), 0, 8, 1, "plat_lt")
+    img.rect(cell(6), 7, 8, 1, "rock_dk")
+    img.rect(cell(6) + 3, 1, 1, 3, "rock_dk")
+    img.rect(cell(6) + 4, 3, 1, 2, "rock_dk")
+    img.rect(cell(6) + 2, 4, 1, 3, "rock_dk")
+    img.rect(cell(6) + 5, 5, 2, 1, "rock_dk")
+
     img.save("assets/greybox/tiles.png")
 
 
 def build_tileset_resource():
     box = "PackedVector2Array(-4, -4, 4, -4, 4, 4, -4, 4)"
     plate = "PackedVector2Array(-4, -4, 4, -4, 4, 0, -4, 0)"
+    # The uids are the ones Godot assigned when these were first imported. Keep
+    # them: every scene that uses the tileset refers to it by uid, and a
+    # regenerated file without one makes all of them fall back to paths.
     lines = [
-        '[gd_resource type="TileSet" load_steps=3 format=3]',
+        '[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://ddjr33bltofk8"]',
         "",
-        '[ext_resource type="Texture2D" path="res://assets/greybox/tiles.png" id="1_tiles"]',
+        '[ext_resource type="Texture2D" uid="uid://g3wacbiotyqe" path="res://assets/greybox/tiles.png" id="1_tiles"]',
         "",
         '[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_grey"]',
         'texture = ExtResource("1_tiles")',
         "texture_region_size = Vector2i(8, 8)",
     ]
-    for i in range(6):
+    for i in range(TILE_COUNT):
         lines.append("%d:0/0 = 0" % i)
         if i in SOLID_TILES:
             lines.append("%d:0/0/physics_layer_0/polygon_0/points = %s" % (i, box))
@@ -160,6 +178,8 @@ def build_tileset_resource():
             lines.append("%d:0/0/physics_layer_0/polygon_0/one_way = true" % i)
         if i in LADDER_TILES:
             lines.append("%d:0/0/custom_data_0 = true" % i)
+        if i in BREAKABLE_TILES:
+            lines.append("%d:0/0/custom_data_1 = true" % i)
     lines += [
         "",
         "[resource]",
@@ -168,6 +188,9 @@ def build_tileset_resource():
         # Tick this box on any tile in the TileSet editor to make it climbable.
         'custom_data_layer_0/name = "ladder"',
         "custom_data_layer_0/type = 1",          # 1 = bool
+        # Tick this one to make a tile shootable.
+        'custom_data_layer_1/name = "breakable"',
+        "custom_data_layer_1/type = 1",
         'sources/0 = SubResource("TileSetAtlasSource_grey")',
         "",
     ]

@@ -33,24 +33,29 @@ func shot_alive() -> bool:
 func step(f: int) -> bool:
 	match f:
 		# ---- the buster and its charge tiers ------------------------------
+		# Nothing leaves on the press: the shot goes when the button comes up,
+		# once the attack animation has played out.
 		5:
 			press(&"fire")
-		6:
-			release(&"fire")
 		8:
-			check("tapping fire shoots", newest_shot() != null)
-			check_near("the shot leaves at weapon speed", newest_shot().velocity.x, 300.0, 1.0)
-		10:
-			press(&"fire")       # a second buster shot, then hold to charge
-		11:
 			release(&"fire")
 		12:
+			check("nothing fires while the button is still coming up", live_shots().is_empty(),
+				"%d already out" % live_shots().size())
+		48:
+			check("a tapped shot leaves on release", newest_shot() != null)
+			check_near("at the weapon's speed", newest_shot().velocity.x, 300.0, 1.0)
+			check("and it's the plain tier",
+				newest_shot().get_meta(&"weapon").display_name == "Pulse Gun",
+				newest_shot().get_meta(&"weapon").display_name)
+		# held down long enough to reach the top tier
+		60:
 			press(&"fire")
-		90:                      # ~1.3s held: full charge
+		145:                     # ~1.4s held
 			release(&"fire")
-		92:
+		162:
 			var tiers := live_shots().map(func(s): return s.get_meta(&"weapon").display_name)
-			check("a charged shot still fires with buster shots on screen",
+			check("holding fire sends the charged tier instead",
 				tiers.has("Pulse (full charge)"), str(tiers))
 		200:
 			check("shots are cleared once off screen", live_shots().is_empty(),

@@ -33,10 +33,7 @@ func step(f: int) -> bool:
 			check("reticle sits above the hero",
 				player.reticle.visible and player.reticle.global_position.y < player.global_position.y - 40.0,
 				"reticle=%s" % player.reticle.global_position)
-			player._fire_cooldown = 0.0
-			press(&"fire")
-		14:
-			release(&"fire")
+			shoot_now()
 		16:
 			shot = newest_shot()
 			check("shots fly where you aim", shot != null and shot.velocity.y < -250.0 and absf(shot.velocity.x) < 1.0,
@@ -72,9 +69,7 @@ func step(f: int) -> bool:
 			player._fire_cooldown = 0.0
 			press(&"aim_right")
 		48:
-			press(&"fire")
-		49:
-			release(&"fire")
+			shoot_now()
 		51:
 			shot = newest_shot()
 			check("the bomb still arcs upward when aimed level",
@@ -97,10 +92,7 @@ func step(f: int) -> bool:
 			check_near("the mouse maps to the world", player.get_global_mouse_position().distance_to(mouse_target), 0.0, 2.0)
 			check("aim points at the cursor", player.aim_dir.x < -0.5 and player.aim_dir.y < -0.5, str(player.aim_dir))
 			check("the hero faces the cursor", player.facing == -1)
-			player._fire_cooldown = 0.0
-			press(&"fire")
-		67:
-			release(&"fire")
+			shoot_now()
 		69:
 			shot = newest_shot()
 			var want := (mouse_target - (player.global_position + Vector2(0.0, -16.0))).normalized()
