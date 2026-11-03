@@ -169,6 +169,8 @@ var _slide_buffer := 0.0
 ## Which way the current slide goes. Separate from `facing`, which follows the
 ## aim, so you can slide away from where you're shooting.
 var _slide_dir := 1
+## Enemies the current slide has already hit. Each takes one hit per slide.
+var _slide_hits: Array[Node] = []
 var _coyote := 0.0
 var _jump_buffer := 0.0
 var _jump_cut_used := false
@@ -204,12 +206,18 @@ var _dash_timer := 0.0
 var _dash_dir := 1
 var _was_on_floor := false
 var _floor_state_initialized := false
+## Hurtbox shapes for standing and for sliding/crouching, built in _ready.
+var _hurt_stand: Shape2D
+var _hurt_low: RectangleShape2D
+var _hurt_stand_y := 0.0
+var _hurt_low_y := 0.0
 
 @onready var anim_spr: AnimatedSprite2D = $AnimatedSprite
 @onready var stand_shape: CollisionShape2D = $StandShape
 @onready var slide_shape: CollisionShape2D = $SlideShape
 @onready var muzzle: Marker2D = $Muzzle
 @onready var hurtbox: Area2D = $Hurtbox
+@onready var hurt_shape: CollisionShape2D = $Hurtbox/Shape
 @onready var hook_probe: Area2D = $HookProbe
 @onready var reticle: Node2D = $Reticle
 
@@ -219,6 +227,7 @@ func _ready() -> void:
 	_spawn_point = global_position
 	_muzzle_offset = muzzle.position
 	health = max_health
+	_build_low_hurtbox()
 	$LadderProbe.area_entered.connect(func(a: Area2D) -> void: _ladder = a)
 	$LadderProbe.area_exited.connect(func(a: Area2D) -> void:
 		if _ladder == a:
@@ -270,6 +279,10 @@ func _physics_process(delta: float) -> void:
 
 	# Touching an enemy hurts. Their shots find us on their own.
 	_check_contact()
+	# A fatal touch has already started the death animation. Stop here, or
+	# _update_sprite below swaps it straight back to idle.
+	if dying:
+		return
 
 	if _hurt_timer > 0.0:
 		_hurt(delta)
@@ -475,6 +488,7 @@ func _start_slide(dir_x: float) -> void:
 	_slide_timer = slide_time
 	_jump_buffer = 0.0
 	_slide_buffer = 0.0
+	_slide_hits.clear()
 	_set_shape(true)
 
 
@@ -876,7 +890,8 @@ func _shoulder() -> Vector2:
 ## was ignored (i-frames, mid-transition), so enemy shots fly on through you
 ## instead of vanishing, as in Mega Man.
 func take_damage(amount: int, from: Node = null) -> bool:
-	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen or dying:
+	# Sliding is invincible -- shots pass straight through.
+	if _invuln > 0.0 or _hurt_timer > 0.0 or frozen or dying or sliding:
 		return false
 
 	health = maxi(health - amount, 0)
@@ -954,6 +969,9 @@ func _dying(delta: float) -> void:
 ## the first touch, so an enemy you were still standing inside when the i-frames
 ## ran out could never hurt you again.
 func _check_contact() -> void:
+	if sliding:
+		_slide_attack()
+		return
 	if _invuln > 0.0 or _hurt_timer > 0.0:
 		return
 	for body in hurtbox.get_overlapping_bodies():
@@ -962,6 +980,29 @@ func _check_contact() -> void:
 		var amount: int = body.get_contact_damage()
 		if amount > 0 and take_damage(amount, body as Node2D):
 			return
+
+
+
+## The slide is an attack: every enemy it touches takes a fully charged shot's
+## damage, once per slide -- slide again to hit the same one again. Whatever's
+## still alive and touching you when the slide ends hurts you as usual.
+func _slide_attack() -> void:
+	for body in hurtbox.get_overlapping_bodies():
+		if body in _slide_hits or not body.has_method(&"take_damage"):
+			continue
+		_slide_hits.append(body)
+		body.take_damage(_slide_damage(), self)
+
+
+## A fully charged shot: the top tier of the first weapon, the pulse gun. Read
+## from the weapon so it follows any change to pulse_full.tres.
+func _slide_damage() -> int:
+	if weapons.is_empty():
+		return 1
+	var tier: Weapon = weapons[0]
+	while tier.charged != null:
+		tier = tier.charged
+	return tier.damage
 
 
 # ---------------------------------------------------------------------------
@@ -1111,6 +1152,27 @@ func _has_headroom() -> bool:
 func _set_shape(is_sliding: bool) -> void:
 	stand_shape.set_deferred(&"disabled", is_sliding)
 	slide_shape.set_deferred(&"disabled", not is_sliding)
+	# The hurtbox ducks too, so things passing overhead miss a slide or crouch.
+	if _hurt_low:
+		hurt_shape.set_deferred(&"shape", _hurt_low if is_sliding else _hurt_stand)
+		hurt_shape.set_deferred(&"position", Vector2(hurt_shape.position.x, _hurt_low_y if is_sliding else _hurt_stand_y))
+
+
+## A low hurtbox for slides and crouches: the standing hurtbox cut down to the
+## slide box's height, keeping the same inset from the body box it has standing.
+func _build_low_hurtbox() -> void:
+	_hurt_stand = hurt_shape.shape
+	_hurt_stand_y = hurt_shape.position.y
+	var stand_rect := _hurt_stand as RectangleShape2D
+	var body_stand := stand_shape.shape as RectangleShape2D
+	var body_low := slide_shape.shape as RectangleShape2D
+	if stand_rect == null or body_stand == null or body_low == null:
+		return
+	var inset := body_stand.size.y - stand_rect.size.y
+	_hurt_low = RectangleShape2D.new()
+	_hurt_low.size = Vector2(stand_rect.size.x, maxf(body_low.size.y - inset, 2.0))
+	# Same offset from the body box's centre as when standing.
+	_hurt_low_y = slide_shape.position.y + (_hurt_stand_y - stand_shape.position.y)
 
 
 func _update_sprite() -> void:

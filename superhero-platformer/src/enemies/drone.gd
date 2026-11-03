@@ -16,10 +16,17 @@ extends Enemy
 @export var sight_range := 220.0
 ## Aim at the player rather than straight ahead.
 @export var aim_at_player := true
+## Frame of the attack animation the shot leaves on.
+@export var fire_frame := 3
 
 var _origin := Vector2.ZERO
 var _phase := 0.0
 var _fire_timer := 0.0
+var _attacking := false
+var _shot_pending := false
+
+## Where shots leave from -- the stinger. Mirrors with the sprite.
+@onready var _proj_source: Node2D = get_node_or_null(^"ProjSource")
 
 
 func _on_spawn() -> void:
@@ -28,6 +35,13 @@ func _on_spawn() -> void:
 	_origin = global_position
 	_phase = randf() * TAU
 	_fire_timer = fire_interval * randf_range(0.3, 1.0)
+
+
+func _on_leave_screen() -> void:
+	_attacking = false
+	_shot_pending = false
+	_fire_timer = fire_interval * randf_range(0.3, 1.0)
+	play_anim(&"idle")
 
 
 func _behaviour(delta: float) -> void:
@@ -44,24 +58,50 @@ func _behaviour(delta: float) -> void:
 	var want_y := _origin.y + sin(_phase) * bob_height
 	velocity.y = (want_y - global_position.y) * 6.0
 
-	if _fire_timer <= 0.0 and _in_range():
+	var in_range := _in_range()
+	if _fire_timer <= 0.0 and in_range and not _attacking:
 		_fire_timer = fire_interval * alert_scale()
-		var dir := direction_to_player() if aim_at_player else Vector2(facing, 0.0)
-		shoot(projectile, dir, Vector2.ZERO, shot_speed)
+		if has_anim(&"attack"):
+			# Wind up; the shot leaves on fire_frame. Restarted explicitly: when
+			# the alert level makes attacks back-to-back, the last one is still
+			# sitting finished on its final frame.
+			_attacking = true
+			_shot_pending = true
+			play_anim(&"attack", 1.0, true)
+		else:
+			_fire()
 
-	if sprite:
-		sprite.frame = int(_phase * 2.0) % 2
+	if _attacking:
+		play_anim(&"attack")
+		if _shot_pending and animated_sprite.animation == &"attack" and animated_sprite.frame >= fire_frame:
+			_shot_pending = false
+			_fire()
+	else:
+		play_anim(&"aggro" if in_range else &"idle")
+
+
+func _fire() -> void:
+	var offset := flipped_offset(_proj_source)
+	var dir := direction_to_player(global_position + offset) if aim_at_player else Vector2(facing, 0.0)
+	shoot(projectile, dir, offset, shot_speed)
 
 
 func _in_range() -> bool:
 	return sight_range <= 0.0 or distance_to_player() <= sight_range
 
-# SIGNALS
-func _on_sprite_animation_changed() -> void:
+## SIGNALS
+func _on_animation_finished(anim: StringName) -> void:
+	if anim == &"attack":
+		_attacking = false
+		# Never got to the shot frame (fire_frame past the end) -- fire anyway.
+		if _shot_pending:
+			_shot_pending = false
+			_fire()
+
+
+func _on_animated_sprite_frame_changed() -> void:
 	pass # Replace with function body.
 
-func _on_sprite_animation_finished() -> void:
-	pass # Replace with function body.
 
-func _on_sprite_animation_looped() -> void:
+func _on_animated_sprite_sprite_frames_changed() -> void:
 	pass # Replace with function body.

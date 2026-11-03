@@ -105,6 +105,7 @@ size = Vector2(14, 8)
 collision_layer = 4
 script = ExtResource("1_walker")
 max_health = 3
+sprite_faces_right = false
 
 [node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -8)
@@ -117,6 +118,3 @@ frame_progress = 0.5273905
 position = Vector2(0, -4)
 shape = SubResource("Rect_walker")
 
-[connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
-[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]
-[connection signal="animation_looped" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_looped"]

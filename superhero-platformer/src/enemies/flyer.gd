@@ -16,6 +16,8 @@ enum Pattern {
 @export var swoop_range := 110.0
 @export var swoop_speed := 150.0
 @export var track_strength := 40.0
+## Switches from the idle to the aggro animation when the player is this close.
+@export var aggro_range := 110.0
 
 var _origin := Vector2.ZERO
 var _phase := 0.0
@@ -43,8 +45,16 @@ func _behaviour(delta: float) -> void:
 		Pattern.SWOOP:
 			_swoop()
 
-	if sprite:
-		sprite.frame = int(_phase * 1.2) % sprite.hframes
+	_animate()
+
+
+func _animate() -> void:
+	if _swooping:
+		play_anim(&"attack")
+	elif _returning or distance_to_player() < aggro_range:
+		play_anim(&"aggro")
+	else:
+		play_anim(&"idle")
 
 
 func _swoop() -> void:
@@ -70,22 +80,3 @@ func _swoop() -> void:
 	if distance_to_player() < swoop_range:
 		_swooping = true
 		face_player()
-
-# SIGNALS
-
-
-
-func _on_animated_sprite_animation_changed() -> void:
-	pass # Replace with function body.
-	
-
-
-
-func _on_animated_sprite_animation_finished() -> void:
-	pass # Replace with function body.
-
-
-
-
-func _on_animated_sprite_animation_looped() -> void:
-	pass # Replace with function body.

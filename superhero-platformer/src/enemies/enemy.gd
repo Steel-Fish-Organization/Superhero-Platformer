@@ -30,6 +30,8 @@ const PLAYER_CENTRE := Vector2(0, -12)
 @export var face_player_on_spawn := true
 ## Flip the sprite when facing left. Off for symmetrical enemies.
 @export var flip_sprite := true
+## Which way the art is drawn. Untick for sprite sheets drawn facing left.
+@export var sprite_faces_right := true
 ## Freeze while off screen. Turn off for something that should keep going.
 @export var only_active_on_screen := true
 
@@ -43,6 +45,11 @@ var player: Node2D
 var _flash := 0.0
 var _dead := false
 var _woken := false
+var _on_screen := false
+## True while the hurt animation plays; state animations wait for it to end.
+var _hurt_playing := false
+var _wanted_anim := &""
+var _wanted_speed := 1.0
 
 @onready var sprite: Sprite2D = get_node_or_null(^"Sprite")
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null(^"AnimatedSprite")
@@ -53,6 +60,8 @@ func _ready() -> void:
 	collision_layer = HOSTILE_LAYER
 	collision_mask = WORLD_LAYER
 	health = max_health
+	if animated_sprite:
+		animated_sprite.animation_finished.connect(_on_anim_finished)
 	_on_spawn()
 
 
@@ -65,7 +74,12 @@ func _physics_process(delta: float) -> void:
 		player = get_tree().get_first_node_in_group(&"player") as Node2D
 	_tick_flash(delta)
 
-	if only_active_on_screen and not is_on_screen():
+	var active := not only_active_on_screen or is_on_screen()
+	if active != _on_screen:
+		_on_screen = active
+		if not active and _woken:
+			_on_leave_screen()
+	if not active:
 		return
 	if not _woken:
 		_woken = true
@@ -78,8 +92,12 @@ func _physics_process(delta: float) -> void:
 	_behaviour(delta)
 	move_and_slide()
 
-	if sprite and flip_sprite:
-		sprite.flip_h = facing < 0
+	if flip_sprite:
+		var flip := is_flipped()
+		if sprite:
+			sprite.flip_h = flip
+		if animated_sprite:
+			animated_sprite.flip_h = flip
 
 
 ## Override in each enemy. Set `velocity`; move_and_slide is called for you.
@@ -97,6 +115,12 @@ func _on_wake() -> void:
 	pass
 
 
+## Override to reset when the enemy scrolls off screen and freezes, so it isn't
+## left mid-attack when the player comes back.
+func _on_leave_screen() -> void:
+	pass
+
+
 # ---------------------------------------------------------------------------
 # damage
 # ---------------------------------------------------------------------------
@@ -110,6 +134,13 @@ func take_damage(amount: int, _from: Node = null) -> bool:
 		die()
 	else:
 		queue_redraw()
+		if has_anim(&"hurt"):
+			if not _hurt_playing:
+				_wanted_anim = animated_sprite.animation
+				_wanted_speed = animated_sprite.get_playing_speed() if animated_sprite.is_playing() else 1.0
+			_hurt_playing = true
+			animated_sprite.play(&"hurt")
+			animated_sprite.frame = 0
 	return true
 
 
@@ -118,6 +149,15 @@ func die() -> void:
 		return
 	_dead = true
 	died.emit(self)
+	# The die animations include their own explosion, so play that out in place
+	# of the death effect. Off the hostile layer so shots and the hero pass through.
+	if has_anim(&"die"):
+		collision_layer = 0
+		velocity = Vector2.ZERO
+		_visual().modulate = Color.WHITE
+		queue_redraw()
+		animated_sprite.play(&"die")
+		return
 	if death_effect:
 		var fx := death_effect.instantiate()
 		if fx is Node2D:
@@ -128,12 +168,92 @@ func die() -> void:
 
 ## Read by the player's hurtbox while touching us.
 func get_contact_damage() -> int:
-	return contact_damage
+	return 0 if _dead else contact_damage
+
+
+# ---------------------------------------------------------------------------
+# animation
+# ---------------------------------------------------------------------------
+func has_anim(anim: StringName) -> bool:
+	return animated_sprite != null and animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim)
+
+
+## Seconds one pass of an animation takes at normal speed.
+func anim_length(anim: StringName) -> float:
+	if not has_anim(anim):
+		return 0.0
+	var frames := animated_sprite.sprite_frames
+	var fps := frames.get_animation_speed(anim)
+	if fps <= 0.0:
+		return 0.0
+	var total := 0.0
+	for i in frames.get_frame_count(anim):
+		total += frames.get_frame_duration(anim, i)
+	return total / fps
+
+
+## Switches to a state animation. Call it every frame with whatever the enemy is
+## doing; it only restarts when the animation actually changes, or when `restart`
+## is set -- use that to start a one-shot (an attack) again from its first frame.
+## While the hurt animation is showing, the request is held until it ends.
+func play_anim(anim: StringName, speed := 1.0, restart := false) -> void:
+	if _dead or not has_anim(anim):
+		return
+	if _hurt_playing:
+		_wanted_anim = anim
+		_wanted_speed = speed
+		return
+	if restart:
+		animated_sprite.play(anim, speed)
+		animated_sprite.frame = 0
+		return
+	if animated_sprite.animation == anim:
+		# Same animation: just update the speed. A finished one-shot stays on
+		# its last frame rather than restarting.
+		if animated_sprite.is_playing():
+			animated_sprite.play(anim, speed)
+		return
+	animated_sprite.play(anim, speed)
+
+
+## Override to react when a one-shot state animation (attack, jump...) ends.
+func _on_animation_finished(_anim: StringName) -> void:
+	pass
+
+
+func _on_anim_finished() -> void:
+	var anim := animated_sprite.animation
+	if anim == &"die":
+		queue_free()
+		return
+	if anim == &"hurt" and _hurt_playing:
+		_hurt_playing = false
+		if _wanted_anim != &"" and has_anim(_wanted_anim):
+			animated_sprite.play(_wanted_anim, _wanted_speed)
+			animated_sprite.frame = 0
+		return
+	_on_animation_finished(anim)
 
 
 # ---------------------------------------------------------------------------
 # helpers for enemy types
 # ---------------------------------------------------------------------------
+## True when the art should be mirrored to face `facing`.
+func is_flipped() -> bool:
+	return flip_sprite and (facing < 0) == sprite_faces_right
+
+
+## A child's position as an offset from us, mirrored along with the sprite. For
+## muzzles and the like, placed in the editor for the unflipped art.
+func flipped_offset(node: Node2D) -> Vector2:
+	if node == null:
+		return Vector2.ZERO
+	var offset := node.position
+	if is_flipped():
+		offset.x = -offset.x
+	return offset
+
+
 func is_on_screen(margin := 8.0) -> bool:
 	var view := get_viewport().get_canvas_transform().affine_inverse() * get_viewport_rect()
 	return view.grow(margin).has_point(global_position)
@@ -188,16 +308,23 @@ func shoot(scene: PackedScene, dir: Vector2, offset := Vector2.ZERO, speed := -1
 # visuals
 # ---------------------------------------------------------------------------
 func _tick_flash(delta: float) -> void:
-	if _flash <= 0.0 or sprite == null:
+	var visual := _visual()
+	if _flash <= 0.0 or visual == null:
 		return
 	_flash -= delta
-	sprite.modulate = Color(3, 3, 3) if int(_flash * 40.0) % 2 == 0 else Color.WHITE
+	visual.modulate = Color(3, 3, 3) if int(_flash * 40.0) % 2 == 0 else Color.WHITE
 	if _flash <= 0.0:
-		sprite.modulate = Color.WHITE
+		visual.modulate = Color.WHITE
+
+
+## Whichever sprite node this enemy uses.
+func _visual() -> Node2D:
+	return sprite if sprite else animated_sprite
 
 
 func _sprite_offset() -> Vector2:
-	return sprite.position if sprite else Vector2.ZERO
+	var visual := _visual()
+	return visual.position if visual else Vector2.ZERO
 
 
 ## Small health pip above the enemy so damage is visible while prototyping.

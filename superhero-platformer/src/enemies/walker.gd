@@ -12,13 +12,13 @@ extends Enemy
 @export var chase_range := 120.0
 
 var _pause := 0.0
-var _step := 0.0
 
 # CUSTOM FUNCTIONS
 func _behaviour(delta: float) -> void:
 	if _pause > 0.0:
 		_pause -= delta
 		velocity.x = 0.0
+		play_anim(&"patrol", 0.0)
 		return
 
 	if chase and distance_to_player() < chase_range:
@@ -32,17 +32,4 @@ func _behaviour(delta: float) -> void:
 			_pause = turn_pause
 
 	velocity.x = speed * facing
-
-	if sprite:
-		_step += delta
-		sprite.frame = int(_step * 8.0) % sprite.hframes
-
-# SIGNALS
-func _on_animated_sprite_animation_changed() -> void:
-	pass # Replace with function body.
-
-func _on_animated_sprite_animation_finished() -> void:
-	pass # Replace with function body.
-
-func _on_animated_sprite_animation_looped() -> void:
-	pass # Replace with function body.
+	play_anim(&"patrol")

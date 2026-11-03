@@ -28,15 +28,16 @@ func _behaviour(delta: float) -> void:
 	if _charging:
 		if _timer <= 0.0:
 			_leap()
-		elif sprite:
-			sprite.frame = 1
 		return
 
 	if _timer <= 0.0 and _in_range():
 		_charging = true
 		_timer = telegraph_time
-	elif sprite:
-		sprite.frame = 0
+		# Squeeze the crouch animation into the telegraph so it lands on the leap.
+		var length := anim_length(&"pre-jump")
+		play_anim(&"pre-jump", length / telegraph_time if telegraph_time > 0.0 else 1.0)
+	else:
+		play_anim(&"idle")
 
 
 func _in_range() -> bool:
@@ -51,22 +52,4 @@ func _leap() -> void:
 
 
 func _animate_air() -> void:
-	if sprite:
-		sprite.frame = 2 if velocity.y < 0.0 else 3
-
-# SIGNALS
-
-
-
-func _on_animated_sprite_animation_changed() -> void:
-	pass # Replace with function body.
-
-
-
-func _on_animated_sprite_animation_finished() -> void:
-	pass # Replace with function body.
-	
-
-
-func _on_animated_sprite_animation_looped() -> void:
-	pass # Replace with function body.
+	play_anim(&"jump" if velocity.y < 0.0 else &"fall")

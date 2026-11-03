@@ -21,6 +21,11 @@ extends Area2D
 @export var max_fall := 400.0
 ## Point the sprite the way it's travelling. Good for bombs and arrows.
 @export var face_travel := false
+## With face_travel, rounds the angle to steps of this many degrees -- 90 points
+## the sprite straight up, down, left or right. 0 = no snapping.
+@export_range(0.0, 180.0) var face_snap_degrees := 0.0
+## Which way the art points, with face_travel. 0 = drawn facing right, -90 = up.
+@export_range(-180.0, 180.0) var sprite_facing_degrees := 0.0
 @export var spin_degrees_per_second := 0.0
 
 @export_group("On contact")
@@ -86,7 +91,7 @@ func launch(from: Vector2, dir: Vector2, by: Node2D = null) -> void:
 	velocity = direction * speed
 	shooter = by
 	if face_travel:
-		rotation = velocity.angle()
+		rotation = _travel_angle()
 	elif direction.x < 0.0:
 		scale.x = -absf(scale.x)
 
@@ -111,11 +116,19 @@ func _physics_process(delta: float) -> void:
 	if spin_degrees_per_second != 0.0:
 		rotation += deg_to_rad(spin_degrees_per_second) * delta
 	elif face_travel:
-		rotation = velocity.angle()
+		rotation = _travel_angle()
 
 	var sprite := get_node_or_null(^"Sprite") as Sprite2D
 	if sprite and sprite.hframes > 1:
 		sprite.frame = int(_age * 14.0) % sprite.hframes
+
+
+## Rotation that points the art along the velocity, snapped if asked.
+func _travel_angle() -> float:
+	var angle := velocity.angle()
+	if face_snap_degrees > 0.0:
+		angle = snappedf(angle, deg_to_rad(face_snap_degrees))
+	return angle - deg_to_rad(sprite_facing_degrees)
 
 
 ## Swept move, so walls are hit exactly rather than overlapped into.

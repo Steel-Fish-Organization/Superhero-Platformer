@@ -154,6 +154,3 @@ autoplay = "idle"
 position = Vector2(0, 1)
 shape = SubResource("Circle_flyer")
 
-[connection signal="animation_changed" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_changed"]
-[connection signal="animation_finished" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_finished"]
-[connection signal="animation_looped" from="AnimatedSprite" to="." method="_on_animated_sprite_animation_looped"]
